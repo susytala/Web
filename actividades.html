@@ -59,6 +59,8 @@ details[open] .ac-chev{transform:rotate(90deg)}
 .ac-foot{text-align:center;color:var(--muted);font-size:.88rem;margin-top:22px}
 .ac-foot a{color:var(--plum)}
 
+.ac-cat{font-family:'Lora',serif;font-style:italic;font-size:1.25rem;color:var(--plum-d);margin:26px 2px 12px}
+.ac-cat:first-of-type{margin-top:8px}
 footer{background:var(--dark);color:rgba(255,255,255,.55);text-align:center;padding:28px 16px;font-size:.9rem;font-family:'Nunito',sans-serif;line-height:1.9}
 footer strong{color:rgba(255,255,255,.9)}
 footer a{color:var(--gold)}
@@ -104,47 +106,127 @@ footer a{color:var(--gold)}
 
     <!-- ============================================================
          EDITÁ ACÁ LAS ACTIVIDADES.
-         Cada <details class="ac"> es una actividad y cada <label class="ac-step"> es un paso.
-         Los textos de abajo son un ejemplo para que veas cómo funciona.
+         Cada <h2 class="ac-cat"> es una categoría, cada <details class="ac"> es una actividad
+         y cada <label class="ac-step"> es un paso.
          Cada checkbox necesita un data-id único: así se guarda el avance de cada persona.
          ============================================================ -->
 
+    <h2 class="ac-cat">🧱 Materiales</h2>
     <details class="ac" open>
       <summary>
         <div class="ac-ic">🧰</div>
-        <div class="ac-t"><b>1. Armá tu mesa de trabajo</b><span>Materiales y herramientas básicas</span></div>
+        <div class="ac-t"><b>1. Conocé tus materiales</b><span>Principiante · 20 min</span></div>
         <div class="ac-chev">›</div>
       </summary>
       <div class="ac-body">
-        <label class="ac-step"><input type="checkbox" data-id="a1-1"><span>Reuní porcelana fría, un rodillo y palillos de modelar.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a1-2"><span>Preparate una superficie limpia y lisa para trabajar.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a1-3"><span>Tené a mano pinceles y pintura acrílica.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a1s1"><span>Reuní porcelana fría, rodillo, palillos de modelar, pinceles finos, pintura acrílica y barniz.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a1s2"><span>Aprendé a conservar la masa: envuelta en film y dentro de una bolsa cerrada para que no se seque.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a1s3"><span>Armá una superficie de trabajo limpia, lisa y bien iluminada.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a1s4"><span>Probá la masa: amasá un poco con las manos y fijate que no se pegue ni se agriete.</span></label>
       </div>
     </details>
 
+    <details class="ac">
+      <summary>
+        <div class="ac-ic">🥣</div>
+        <div class="ac-t"><b>2. Preparar tu propia porcelana fría</b><span>Principiante · 45 min</span></div>
+        <div class="ac-chev">›</div>
+      </summary>
+      <div class="ac-body">
+        <label class="ac-step"><input type="checkbox" data-id="c1a2s1"><span>Mezclá en una olla 1 taza de maicena, 1 taza de cola vinílica blanca, 1 cucharada de aceite y 1 de jugo de limón.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a2s2"><span>Cociná a fuego bajo sin dejar de revolver hasta que la mezcla se despegue de las paredes.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a2s3"><span>Dejala enfriar un poco, amasala con unas gotas de crema de manos y guardala bien envuelta.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c1a2s4"><span>Dejala descansar un día antes de usarla: se trabaja mucho mejor.</span></label>
+      </div>
+    </details>
+
+
+    <h2 class="ac-cat">✂️ Manualidades</h2>
     <details class="ac">
       <summary>
         <div class="ac-ic">🌸</div>
-        <div class="ac-t"><b>2. Tu primera figura</b><span>Una flor sencilla en porcelana fría</span></div>
+        <div class="ac-t"><b>3. Tu primera flor</b><span>Principiante · 40 min</span></div>
         <div class="ac-chev">›</div>
       </summary>
       <div class="ac-body">
-        <label class="ac-step"><input type="checkbox" data-id="a2-1"><span>Amasá y estirá la masa hasta que quede fina y pareja.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a2-2"><span>Cortá y armá los pétalos de tu flor.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a2-3"><span>Dejala secar unas 24 horas.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a1s1"><span>Estirá la masa hasta que quede fina y pareja.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a1s2"><span>Cortá cinco pétalos y marcales las nervaduras con un palillo.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a1s3"><span>Uní los pétalos alrededor de un centro y presionalos suavemente.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a1s4"><span>Dejala secar al aire entre 24 y 48 horas, lejos del sol directo.</span></label>
       </div>
     </details>
 
     <details class="ac">
       <summary>
-        <div class="ac-ic">🎨</div>
-        <div class="ac-t"><b>3. Pintado y terminación</b><span>Dale color y protección a tu pieza</span></div>
+        <div class="ac-ic">📌</div>
+        <div class="ac-t"><b>4. Broche con cinta</b><span>Intermedio · 1 hora</span></div>
         <div class="ac-chev">›</div>
       </summary>
       <div class="ac-body">
-        <label class="ac-step"><input type="checkbox" data-id="a3-1"><span>Pintá los detalles con acrílico.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a3-2"><span>Aplicá una capa de barniz y dejala secar.</span></label>
-        <label class="ac-step"><input type="checkbox" data-id="a3-3"><span>Sacale una foto para guardar tu avance.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a2s1"><span>Modelá una figura chica, por ejemplo un corazón o una estrella, y dejala secar por completo.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a2s2"><span>Pintala con acrílico y dejá secar cada capa antes de seguir con la siguiente.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a2s3"><span>Pegá la figura sobre una cinta doblada en forma de moño.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c2a2s4"><span>Fijá un imperdible o una base de broche con pegamento fuerte por detrás.</span></label>
+      </div>
+    </details>
+
+
+    <h2 class="ac-cat">🎨 Bellas artes</h2>
+    <details class="ac">
+      <summary>
+        <div class="ac-ic">🖌️</div>
+        <div class="ac-t"><b>5. Mezclá tu paleta de colores</b><span>Principiante · 30 min</span></div>
+        <div class="ac-chev">›</div>
+      </summary>
+      <div class="ac-body">
+        <label class="ac-step"><input type="checkbox" data-id="c3a1s1"><span>Poné en tu paleta los tres colores primarios y blanco.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a1s2"><span>Mezclá de a pares para obtener verde, naranja y violeta.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a1s3"><span>Aclará y oscurecé cada color agregando blanco o una gota de su complementario.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a1s4"><span>Hacé una tabla con tus mezclas para tenerla de referencia.</span></label>
+      </div>
+    </details>
+
+    <details class="ac">
+      <summary>
+        <div class="ac-ic">✨</div>
+        <div class="ac-t"><b>6. Luces y sombras sobre tu pieza</b><span>Intermedio · 1 hora</span></div>
+        <div class="ac-chev">›</div>
+      </summary>
+      <div class="ac-body">
+        <label class="ac-step"><input type="checkbox" data-id="c3a2s1"><span>Pintá la base de la pieza con un color parejo y dejala secar.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a2s2"><span>Agregá una sombra más oscura en los bordes y las zonas hundidas.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a2s3"><span>Sumá una luz más clara en las partes que sobresalen.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c3a2s4"><span>Difuminá los límites con un pincel seco y limpio.</span></label>
+      </div>
+    </details>
+
+
+    <h2 class="ac-cat">🎄 Artesanía</h2>
+    <details class="ac">
+      <summary>
+        <div class="ac-ic">🧝</div>
+        <div class="ac-t"><b>7. Duende navideño</b><span>Intermedio · 2 horas</span></div>
+        <div class="ac-chev">›</div>
+      </summary>
+      <div class="ac-body">
+        <label class="ac-step"><input type="checkbox" data-id="c4a1s1"><span>Modelá la cabeza, la nariz y las manos en porcelana fría y dejalas secar.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a1s2"><span>Pintá la cara con detalles finos: ojos, mejillas y sonrisa.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a1s3"><span>Armá el cuerpo y el sombrero con tela y relleno.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a1s4"><span>Pegá todas las partes y revisá que la pieza quede firme.</span></label>
+      </div>
+    </details>
+
+    <details class="ac">
+      <summary>
+        <div class="ac-ic">🎁</div>
+        <div class="ac-t"><b>8. Presentación y precio de tus piezas</b><span>Intermedio · 45 min</span></div>
+        <div class="ac-chev">›</div>
+      </summary>
+      <div class="ac-body">
+        <label class="ac-step"><input type="checkbox" data-id="c4a2s1"><span>Sacale fotos a tu pieza con luz natural y fondo liso.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a2s2"><span>Anotá el costo de los materiales y las horas que te llevó hacerla.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a2s3"><span>Definí tu precio sumando materiales, tiempo y un margen de ganancia.</span></label>
+        <label class="ac-step"><input type="checkbox" data-id="c4a2s4"><span>Preparate un envoltorio prolijo con una tarjeta o una etiqueta tuya.</span></label>
       </div>
     </details>
 
