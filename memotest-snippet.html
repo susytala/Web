@@ -1,0 +1,70 @@
+<!-- ===== MEMOTEST MANOJITO: pegar justo antes del comentario MENU ===== -->
+<style>
+.mm-wrap{max-width:560px;margin:26px auto 8px;padding:20px 16px 22px;background:linear-gradient(160deg,#fff6ea,#fde6ec);border:2px dashed #e7b9c4;border-radius:26px;text-align:center;font-family:'Nunito',system-ui,sans-serif;color:#7a5a48;box-shadow:0 6px 20px rgba(190,120,140,.15)}
+.mm-wrap h2{font-family:'Lora',Georgia,serif;font-style:italic;font-size:clamp(1.5rem,5vw,2rem);color:#a8576f;margin:0 0 4px}
+.mm-wrap p.mm-sub{margin:0 0 14px;font-size:.95rem;color:#8a6a55}
+.mm-info{display:flex;justify-content:center;gap:10px;margin-bottom:14px;font-weight:700;font-size:.85rem}
+.mm-info span{background:#fff;border:1.5px solid #f0cfd7;border-radius:999px;padding:5px 12px}
+.mm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:420px;margin:0 auto}
+.mm-card{aspect-ratio:1/1;perspective:600px;background:none;border:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mm-in{display:block;position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mm-card.on .mm-in{transform:rotateY(180deg)}
+.mm-f,.mm-b{position:absolute;inset:0;border-radius:16px;display:grid;place-items:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.mm-b{background:repeating-linear-gradient(45deg,#f4c6d0,#f4c6d0 8px,#f9d9e0 8px,#f9d9e0 16px);border:2px solid #e7a9b9;font-size:clamp(1.3rem,6vw,1.9rem);box-shadow:0 3px 8px rgba(190,120,140,.25)}
+.mm-f{background:#fffaf2;border:2px solid #e2c9a8;transform:rotateY(180deg);font-size:clamp(2rem,10vw,3.2rem);box-shadow:0 3px 8px rgba(138,106,85,.2)}
+.mm-card.ok .mm-f{background:#ffeef2;border-color:#e58aa3;animation:mmPop .5s}
+@keyframes mmPop{50%{transform:rotateY(180deg) scale(1.12)}}
+.mm-win{display:none;margin-top:18px;animation:mmUp .5s}
+.mm-win.show{display:block}
+@keyframes mmUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.mm-win p{font-size:1.1rem;font-weight:800;color:#a8576f;line-height:1.4;margin:0 0 14px}
+.mm-go{display:inline-block;background:linear-gradient(135deg,#d9849d,#b9627c);color:#fff;text-decoration:none;font-weight:800;padding:13px 26px;border-radius:999px;box-shadow:0 5px 14px rgba(185,98,124,.4)}
+.mm-again{display:block;margin:12px auto 0;background:none;border:none;color:#8a6a55;text-decoration:underline;font:inherit;font-size:.85rem;cursor:pointer}
+</style>
+
+<section class="mm-wrap" id="memotest" aria-label="Memotest Manojito">
+  <h2>Memotest Manojito 🌸</h2>
+  <p class="mm-sub">Encontrá las 6 parejas de piezas de porcelana fría.</p>
+  <div class="mm-info"><span>Intentos: <b id="mm-moves">0</b></span><span>Parejas: <b id="mm-found">0</b>/6</span></div>
+  <div class="mm-grid" id="mm-grid"></div>
+  <div class="mm-win" id="mm-win" role="status">
+    <p>🎉 ¡Felicitaciones! Encontraste todas las piezas de Manojito. Visitá nuestra tienda para crear las tuyas.</p>
+    <a class="mm-go" href="#tienda">🛍️ Ir a la tienda</a>
+  </div>
+  <button type="button" class="mm-again" id="mm-again">Jugar de nuevo</button>
+</section>
+
+<script>
+(function(){
+  var P=[['🌸','flor'],['🎀','lazo'],['🧸','osito'],['💍','anillo'],['🧁','cupcake'],['🦋','mariposa']];
+  var grid=document.getElementById('mm-grid'),mv=document.getElementById('mm-moves'),fd=document.getElementById('mm-found'),win=document.getElementById('mm-win');
+  var first=null,lock=false,moves=0,found=0;
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function start(){
+    grid.innerHTML='';first=null;lock=false;moves=0;found=0;mv.textContent='0';fd.textContent='0';win.classList.remove('show');
+    shuffle(P.concat(P)).forEach(function(p){
+      var b=document.createElement('button');b.type='button';b.className='mm-card';b.setAttribute('aria-label','Carta tapada');b.dataset.k=p[1];
+      b.innerHTML='<span class="mm-in"><span class="mm-b">🌷</span><span class="mm-f">'+p[0]+'</span></span>';
+      b.addEventListener('click',function(){flip(b);});grid.appendChild(b);
+    });
+  }
+  function flip(c){
+    if(lock||c.classList.contains('on'))return;
+    c.classList.add('on');
+    if(!first){first=c;return;}
+    moves++;mv.textContent=moves;
+    if(first.dataset.k===c.dataset.k){
+      first.classList.add('ok');c.classList.add('ok');first=null;found++;fd.textContent=found;
+      if(found===6)setTimeout(function(){win.classList.add('show');win.scrollIntoView({behavior:'smooth',block:'center'});},600);
+    }else{
+      lock=true;var a=first;first=null;
+      setTimeout(function(){a.classList.remove('on');c.classList.remove('on');lock=false;},900);
+    }
+  }
+  document.getElementById('mm-again').addEventListener('click',start);
+  start();
+})();
+</script>
+<div id="tienda"></div>
+<!-- ===== FIN MEMOTEST ===== -->
+
