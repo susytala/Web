@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fde6ec">
+<title>¿Cuál falta? · Manojito</title>
+<meta name="description" content="Memorizá las piezas, descubrí cuál falta y ganá un cupón de descuento en Manojito.">
+<style>
+  :root{
+    --rosa:#f4b6c5; --rosa-fuerte:#d9849d; --rosa-oscuro:#a8576f;
+    --crema:#fff6ea; --blanco:#fffdfb; --dorado:#e8c477; --dorado-oscuro:#b88a3e; --marron:#7a5a48;
+    --ok:#3aa96b; --mal:#c8506b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#f3d9df;
+    font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--marron);
+    -webkit-user-select:none;user-select:none}
+  #app{position:relative;margin:0 auto;height:100vh;height:100dvh;max-width:520px;overflow:hidden;display:flex;flex-direction:column;
+    background:radial-gradient(circle at 1.5px 1.5px,rgba(232,196,119,.45) 1.4px,transparent 1.6px) 0 0/26px 26px,
+               linear-gradient(180deg,#fff6ea 0%,#fde6ec 100%);box-shadow:0 0 40px rgba(168,87,111,.25)}
+
+  /* barra superior */
+  #hud{display:none;justify-content:space-between;align-items:center;gap:8px;padding:calc(12px + env(safe-area-inset-top)) 14px 6px}
+  #hud.on{display:flex}
+  .chip{background:rgba(255,253,251,.95);border:2px solid #f0cfd7;border-radius:999px;padding:6px 14px;font-weight:800;font-size:15px;
+    color:var(--rosa-oscuro);box-shadow:0 2px 8px rgba(168,87,111,.14);white-space:nowrap}
+  .chip b{font-size:17px}
+
+  /* escenario */
+  #juego{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:6px 14px calc(18px + env(safe-area-inset-bottom));min-height:0}
+  #juego.on{display:flex}
+  #consigna{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);font-size:clamp(22px,6.6vw,29px);
+    text-align:center;line-height:1.15;min-height:2.3em;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+  #tiempo{width:min(86%,360px);height:9px;border-radius:99px;background:rgba(232,196,119,.28);overflow:hidden;margin-bottom:14px}
+  #tiempo i{display:block;height:100%;width:100%;transform-origin:left;background:linear-gradient(90deg,var(--dorado),var(--rosa-fuerte))}
+  #tablero{width:min(100%,400px);display:grid;gap:10px;padding:14px;background:var(--blanco);border:2.5px dashed #e7b9c4;border-radius:26px;
+    box-shadow:0 8px 24px rgba(168,87,111,.18),0 0 0 6px rgba(255,253,251,.7)}
+  .celda{aspect-ratio:1/1;display:grid;place-items:center;border-radius:18px;background:var(--crema);border:2px solid #ecd9bb;
+    font-size:clamp(34px,11vw,52px);line-height:1;position:relative;overflow:hidden;animation:aparece .4s both}
+  .celda img{width:78%;height:78%;object-fit:contain;pointer-events:none}
+  .celda.hueco{background:repeating-linear-gradient(45deg,#fde6ec,#fde6ec 8px,#fff 8px,#fff 16px);border:2.5px dashed var(--rosa-fuerte);
+    color:var(--rosa-oscuro);font-family:Georgia,serif;font-weight:700;animation:latir 1s ease-in-out infinite}
+  @keyframes aparece{from{opacity:0;transform:scale(.6) rotate(-6deg)}to{opacity:1;transform:none}}
+  @keyframes latir{50%{transform:scale(1.06)}}
+
+  #opciones{display:none;width:min(100%,400px);grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  #opciones.on{display:grid}
+  .op{aspect-ratio:1/1.08;border-radius:20px;border:2.5px solid var(--rosa-fuerte);background:#fff;cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px;font-family:inherit;color:var(--marron);padding:4px;
+    box-shadow:0 5px 12px rgba(168,87,111,.2);transition:transform .15s;animation:aparece .35s both}
+  .op:active{transform:scale(.94)}
+  .op .em{font-size:clamp(34px,11vw,50px);line-height:1;display:grid;place-items:center;width:100%;height:68%}
+  .op .em img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+  .op small{font-size:12.5px;font-weight:800;color:var(--rosa-oscuro);text-transform:capitalize}
+  .op.bien{background:#e4f7ec;border-color:var(--ok);animation:bien .5s}
+  .op.mal{background:#fde3e8;border-color:var(--mal);animation:mal .45s}
+  @keyframes bien{40%{transform:scale(1.12)}}
+  @keyframes mal{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+  #opciones.bloq .op{pointer-events:none}
+
+  #aviso{height:26px;margin-top:10px;font-weight:800;font-size:17px;text-align:center}
+  #aviso.ok{color:var(--ok)} #aviso.mal{color:var(--mal)}
+
+  /* pantallas */
+  .pantalla{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;z-index:5;
+    background:rgba(255,246,234,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .pantalla.on{display:flex}
+  .tarjeta{width:100%;max-width:380px;background:var(--blanco);border:2.5px dashed #e7b9c4;border-radius:28px;padding:26px 22px 22px;text-align:center;
+    box-shadow:0 10px 30px rgba(168,87,111,.22),0 0 0 6px rgba(255,253,251,.7);animation:subir .45s cubic-bezier(.2,.9,.3,1.1)}
+  @keyframes subir{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+  .logo{font-size:44px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 3px 4px rgba(168,87,111,.25))}
+  h1{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);margin:2px 0 8px;font-size:clamp(28px,8.5vw,36px);line-height:1.1}
+  h1 small{display:block;font-size:.4em;font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--dorado-oscuro);
+    font-family:'Nunito',system-ui,sans-serif;margin-bottom:6px}
+  .tarjeta p{margin:0 0 12px;line-height:1.45;font-size:15.5px}
+  .reglas{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+  .reglas span{background:var(--crema);border:1.5px solid #ecd9bb;border-radius:999px;padding:6px 11px;font-size:13.5px;font-weight:700}
+  .btn{display:block;width:100%;border:none;border-radius:999px;padding:14px 18px;font-family:inherit;font-weight:800;font-size:17px;line-height:1.1;
+    cursor:pointer;color:#fff;margin-top:10px;transition:transform .15s}
+  .btn:active{transform:scale(.97)}
+  .btn.jugar{background:linear-gradient(135deg,#e592ab,#b9627c);box-shadow:0 6px 16px rgba(185,98,124,.4);font-size:20px;padding:16px}
+  .btn.wa{background:linear-gradient(135deg,#34c26c,#1f9a52);box-shadow:0 6px 14px rgba(31,154,82,.35)}
+  .btn.compartir{background:#fff;color:var(--rosa-oscuro);border:2px solid var(--rosa-fuerte)}
+  .btn.otra{background:none;color:var(--marron);text-decoration:underline;font-size:15px;font-weight:700;padding:10px}
+  .mejor{margin-top:12px;font-size:13.5px;color:var(--dorado-oscuro);font-weight:800}
+  .puntos{font-family:Georgia,serif;font-size:64px;font-weight:700;color:var(--rosa-oscuro);line-height:1;margin:2px 0 0}
+  .puntos-t{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dorado-oscuro);font-weight:800;margin-bottom:8px}
+  .cupon{background:linear-gradient(135deg,#fff3d6,#ffe9ef);border:2px dashed var(--dorado);border-radius:18px;padding:12px 12px 10px;margin:8px 0 6px}
+  .cupon b{display:block;font-family:Georgia,serif;font-size:26px;letter-spacing:.1em;color:var(--rosa-oscuro)}
+  .cupon span{font-size:14px;line-height:1.35;display:block}
+  @media (max-height:640px){.logo{display:none}.tarjeta{padding:18px 16px}.puntos{font-size:48px}#tablero{gap:7px;padding:10px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="chip">🌸 Ronda <b id="h-ronda">1</b></div>
+    <div class="chip">⭐ <b id="h-puntos">0</b></div>
+  </div>
+
+  <div id="juego">
+    <div id="consigna"></div>
+    <div id="tiempo"><i id="tiempo-i"></i></div>
+    <div id="tablero" aria-live="polite"></div>
+    <div id="opciones"></div>
+    <div id="aviso"></div>
+  </div>
+
+  <!-- INICIO -->
+  <div class="pantalla on" id="p-inicio">
+    <div class="tarjeta">
+      <div class="logo">🔍</div>
+      <h1><small>Manojito · Artesanías de Mendoza</small>¿Cuál falta?</h1>
+      <p>Mirá bien las piezas y memorizalas. Después una desaparece: ¡adiviná cuál es!</p>
+      <div class="reglas">
+        <span>👀 Memorizá</span>
+        <span>❓ Elegí la que falta</span>
+        <span id="r-cupon">🎁 Cupón con 3 aciertos</span>
+      </div>
+      <button class="btn jugar" id="b-empezar" type="button">Empezar 🌸</button>
+      <div class="mejor" id="i-mejor"></div>
+    </div>
+  </div>
+
+  <!-- FIN -->
+  <div class="pantalla" id="p-fin">
+    <div class="tarjeta">
+      <div class="puntos-t">Tu puntaje</div>
+      <div class="puntos" id="f-puntos">0</div>
+      <p id="f-msg" style="margin-top:10px"></p>
+      <div class="cupon" id="f-cupon" style="display:none">
+        <b id="f-codigo">MEMO10</b>
+        <span id="f-cupon-t"></span>
+      </div>
+      <div class="mejor" id="f-mejor"></div>
+      <button class="btn wa" id="b-canjear" type="button" style="display:none">💬 Canjear por WhatsApp</button>
+      <button class="btn compartir" id="b-compartir" type="button">🌸 Compartir mi resultado</button>
+      <button class="btn otra" id="b-otra" type="button">↻ Jugar de nuevo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   ⚙️  CONFIGURACIÓN: acá cambiás todo lo importante
+   ========================================================== */
+var CONFIG = {
+  cuponNombre: 'MEMO10',          // nombre del cupón
+  cuponDescuento: 10,             // porcentaje de descuento
+  aciertosParaCupon: 3,           // rondas acertadas para ganar el cupón
+
+  whatsapp: '5492617142759',      // número con código de país, sin + ni espacios
+  linkCompartir: 'https://susytala.github.io/Web/cual-falta.html', // link que se comparte
+
+  segundosParaMirar: 3,           // tiempo inicial para memorizar las piezas
+  piezasIniciales: 6,             // cantidad de piezas en la primera ronda
+  segundosParaResponder: 8,       // tiempo para elegir (baja de a poco)
+
+  /* Dificultad: cada ronda mirás menos tiempo y, cada 2 rondas, aparece 1 pieza más */
+  restaSegundosPorRonda: 0.25,
+  minimoSegundosParaMirar: 1.2,
+  rondasParaSumarPieza: 2,
+  maximoPiezas: 12,
+
+  /* PIEZAS PRINCIPALES. Para usar una foto: poné la ruta en "imagen",
+     por ejemplo  imagen: 'imagenes/flor.png'  (PNG o JPG).
+     Si la foto no carga, se usa el emoji automáticamente. */
+  piezas: [
+    { nombre: 'flor',     emoji: '🌸', imagen: '' },
+    { nombre: 'lazo',     emoji: '🎀', imagen: '' },
+    { nombre: 'osito',    emoji: '🧸', imagen: '' },
+    { nombre: 'anillo',   emoji: '💍', imagen: '' },
+    { nombre: 'cupcake',  emoji: '🧁', imagen: '' },
+    { nombre: 'mariposa', emoji: '🦋', imagen: '' }
+  ],
+
+  /* PIEZAS EXTRA: se suman solo en las rondas difíciles (cuando hay más de 6 piezas) */
+  piezasExtra: [
+    { nombre: 'corazón',  emoji: '💖', imagen: '' },
+    { nombre: 'estrella', emoji: '⭐', imagen: '' },
+    { nombre: 'conejito', emoji: '🐰', imagen: '' },
+    { nombre: 'tulipán',  emoji: '🌷', imagen: '' },
+    { nombre: 'sombrero', emoji: '👒', imagen: '' },
+    { nombre: 'regalo',   emoji: '🎁', imagen: '' }
+  ]
+};
+
+/* ==========================================================
+   Juego (no hace falta tocar nada de acá para abajo)
+   ========================================================== */
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var KEY_MEJOR = 'manojito_cualfalta_mejor';
+  var S = { ronda:0, puntos:0, grilla:[], falta:null, fase:'', timer:0, raf:0, activo:false };
+
+  $('r-cupon').textContent = '🎁 Cupón con ' + CONFIG.aciertosParaCupon + ' aciertos';
+
+  function leerMejor(){ try{ return parseInt(localStorage.getItem(KEY_MEJOR),10) || 0; }catch(e){ return 0; } }
+  function guardarMejor(n){ try{ localStorage.setItem(KEY_MEJOR, String(n)); }catch(e){} }
+  function mejorInicio(){ var m = leerMejor(); $('i-mejor').textContent = m ? '🏆 Tu mejor puntaje: ' + m : ''; }
+  mejorInicio();
+
+  function mezclar(a){ a = a.slice(); for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+  /* dibuja una pieza (foto si hay, emoji si no) */
+  function pintar(el, p){
+    el.textContent = '';
+    if(p.imagen){
+      var im = new Image(); im.alt = p.nombre; im.draggable = false;
+      im.onerror = function(){ el.textContent = p.emoji; };
+      im.src = p.imagen; el.appendChild(im);
+    } else { el.textContent = p.emoji; }
+  }
+
+  /* dificultad de la ronda actual */
+  function cantidad(r){
+    var extra = Math.floor((r-1) / CONFIG.rondasParaSumarPieza);
+    var tope = Math.min(CONFIG.maximoPiezas, CONFIG.piezas.length + CONFIG.piezasExtra.length);
+    return Math.min(tope, CONFIG.piezasIniciales + extra);
+  }
+  function segundosMirar(r){ return Math.max(CONFIG.minimoSegundosParaMirar, CONFIG.segundosParaMirar - CONFIG.restaSegundosPorRonda*(r-1)); }
+  function segundosResponder(r){ return Math.max(3.5, CONFIG.segundosParaResponder - 0.35*(r-1)); }
+
+  function columnas(n){ return n <= 6 ? 3 : (n <= 9 ? 3 : 4); }
+
+  /* barra de tiempo: llama a fin() cuando se termina */
+  function cuenta(seg, fin){
+    cancelAnimationFrame(S.raf);
+    var t0 = performance.now(), barra = $('tiempo-i');
+    S.timer = seg;
+    (function paso(now){
+      if(!S.activo) return;
+      var f = Math.max(0, 1 - (now - t0)/(seg*1000));
+      barra.style.transform = 'scaleX(' + f + ')';
+      if(f <= 0){ fin(); return; }
+      S.raf = requestAnimationFrame(paso);
+    })(t0);
+  }
+
+  /* ---------- flujo ---------- */
+  function empezar(){
+    S.ronda = 0; S.puntos = 0; S.activo = true;
+    $('p-inicio').classList.remove('on'); $('p-fin').classList.remove('on');
+    $('hud').classList.add('on'); $('juego').classList.add('on');
+    siguienteRonda();
+  }
+
+  function siguienteRonda(){
+    S.ronda++;
+    $('h-ronda').textContent = S.ronda; $('h-puntos').textContent = S.puntos;
+    $('aviso').textContent = ''; $('aviso').className = '';
+    $('opciones').className = ''; $('opciones').innerHTML = '';
+
+    var n = cantidad(S.ronda);
+    var pool = mezclar(CONFIG.piezas.concat(CONFIG.piezasExtra));
+    /* siempre incluye las piezas principales primero, y las extra solo si hacen falta */
+    var base = mezclar(CONFIG.piezas), extra = mezclar(CONFIG.piezasExtra);
+    S.grilla = mezclar(base.concat(extra).slice(0, n));
+    S.falta = S.grilla[Math.floor(Math.random()*S.grilla.length)];
+
+    var tab = $('tablero');
+    tab.style.gridTemplateColumns = 'repeat(' + columnas(n) + ',1fr)';
+    tab.innerHTML = '';
+    S.grilla.forEach(function(p, i){
+      var c = document.createElement('div'); c.className = 'celda'; c.style.animationDelay = (i*0.05) + 's';
+      pintar(c, p); tab.appendChild(c);
+    });
+
+    $('consigna').textContent = '¡Memorizá las piezas! 👀';
+    S.fase = 'mirar';
+    cuenta(segundosMirar(S.ronda), ocultar);
+  }
+
+  function ocultar(){
+    S.fase = 'elegir';
+    var celdas = $('tablero').children;
+    var idx = S.grilla.indexOf(S.falta);
+    celdas[idx].className = 'celda hueco'; celdas[idx].style.animationDelay = '0s'; celdas[idx].textContent = '?';
+    $('consigna').textContent = '¿Cuál falta? 🤔';
+
+    /* 3 opciones: la que falta + 2 distractoras (primero piezas que NO están en la grilla, si no hay, de las visibles) */
+    var todas = CONFIG.piezas.concat(CONFIG.piezasExtra);
+    var fuera = mezclar(todas.filter(function(p){ return S.grilla.indexOf(p) === -1; }));
+    var dentro = mezclar(S.grilla.filter(function(p){ return p !== S.falta; }));
+    var distract = fuera.concat(dentro).slice(0, 2);
+    var ops = mezclar([S.falta].concat(distract));
+
+    var cont = $('opciones'); cont.innerHTML = ''; cont.className = 'on';
+    ops.forEach(function(p, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'op'; b.style.animationDelay = (i*0.07) + 's';
+      var em = document.createElement('span'); em.className = 'em'; pintar(em, p);
+      var tx = document.createElement('small'); tx.textContent = p.nombre;
+      b.appendChild(em); b.appendChild(tx);
+      b.addEventListener('click', function(){ responder(p, b); });
+      cont.appendChild(b);
+    });
+    cuenta(segundosResponder(S.ronda), function(){ responder(null, null); });
+  }
+
+  function responder(p, boton){
+    if(S.fase !== 'elegir') return;
+    S.fase = 'feedback'; cancelAnimationFrame(S.raf);
+    $('opciones').classList.add('bloq');
+    var acerto = (p === S.falta);
+    var celdas = $('tablero').children, idx = S.grilla.indexOf(S.falta);
+    /* muestra la pieza que faltaba */
+    celdas[idx].className = 'celda'; celdas[idx].style.animationDelay = '0s'; pintar(celdas[idx], S.falta);
+
+    if(acerto){
+      S.puntos++; $('h-puntos').textContent = S.puntos;
+      boton.classList.add('bien');
+      $('aviso').textContent = '¡Eso es! ✨ +1'; $('aviso').className = 'ok';
+      setTimeout(function(){ if(S.activo) siguienteRonda(); }, 900);
+    } else {
+      if(boton) boton.classList.add('mal');
+      else $('aviso').textContent = '¡Se acabó el tiempo! ⏰';
+      if(boton) $('aviso').textContent = 'Era ' + S.falta.nombre + ' ' + (S.falta.imagen ? '' : S.falta.emoji);
+      $('aviso').className = 'mal';
+      try{ if(navigator.vibrate) navigator.vibrate(70); }catch(e){}
+      setTimeout(terminar, 1500);
+    }
+  }
+
+  /* ---------- final ---------- */
+  function terminar(){
+    S.activo = false; cancelAnimationFrame(S.raf);
+    $('hud').classList.remove('on'); $('juego').classList.remove('on');
+    var p = S.puntos, mejor = leerMejor(), record = p > mejor;
+    if(record){ mejor = p; guardarMejor(p); }
+    $('f-puntos').textContent = p;
+    $('f-mejor').textContent = (record && p>0 ? '🏆 ¡Nuevo récord! ' : '🏆 Mejor puntaje: ') + mejor;
+    var gano = p >= CONFIG.aciertosParaCupon, msg;
+    if(gano){
+      msg = '¡Ganaste tu cupón ' + CONFIG.cuponNombre + '! ' + CONFIG.cuponDescuento + '% de descuento en tu próxima compra.';
+      $('f-codigo').textContent = CONFIG.cuponNombre;
+      $('f-cupon-t').textContent = CONFIG.cuponDescuento + '% de descuento · canjealo por WhatsApp';
+    } else {
+      var faltan = CONFIG.aciertosParaCupon - p;
+      msg = p === 0 ? '¡No te desanimes! Con práctica sale. Probá de nuevo y ganá tu cupón 🌸'
+          : '¡Casi! Te faltaron ' + faltan + ' acierto' + (faltan>1?'s':'') + ' para tu cupón. ¡Dale otra vez! 💪';
+    }
+    $('f-msg').textContent = msg;
+    $('f-cupon').style.display = gano ? 'block' : 'none';
+    $('b-canjear').style.display = gano ? 'block' : 'none';
+    $('p-fin').classList.add('on');
+  }
+
+  function abrirWhatsApp(texto){
+    var url = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(texto);
+    var w = window.open(url, '_blank'); if(!w) location.href = url;
+  }
+
+  $('b-empezar').addEventListener('click', empezar);
+  $('b-otra').addEventListener('click', function(){ mejorInicio(); empezar(); });
+  $('b-canjear').addEventListener('click', function(){
+    abrirWhatsApp('¡Hola! Jugué ¿Cuál falta? de Manojito e hice ' + S.puntos + ' puntos. Quiero canjear mi cupón ' + CONFIG.cuponNombre + ' 🌸');
+  });
+  $('b-compartir').addEventListener('click', function(){
+    abrirWhatsApp('¡Hice ' + S.puntos + ' puntos en ¿Cuál falta? de Manojito! 🌸 ¿Podés superarme? Jugá acá: ' + CONFIG.linkCompartir);
+  });
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive:false });
+  window.__falta = { S: S, CONFIG: CONFIG }; // solo para pruebas
+})();
+</script>
+</body>
+</html>
