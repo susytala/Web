@@ -1,2 +1,2 @@
 # Web
-Suscriptores con planes usamos base datos 
+Suscriptores con planes usamos base datos.
