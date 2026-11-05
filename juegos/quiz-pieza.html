@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fde6ec">
+<title>¿Qué pieza Manojito sos?</title>
+<meta name="description" content="Respondé 5 preguntas rápidas y descubrí qué pieza de Manojito representa tu estilo.">
+<style>
+  :root{
+    --rosa:#f4b6c5; --rosa-fuerte:#d9849d; --rosa-oscuro:#a8576f;
+    --crema:#fff6ea; --blanco:#fffdfb; --dorado:#e8c477; --dorado-oscuro:#b88a3e; --marron:#7a5a48;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#f3d9df;
+    font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--marron);-webkit-user-select:none;user-select:none}
+  #app{position:relative;margin:0 auto;height:100vh;height:100dvh;max-width:520px;overflow:hidden;display:flex;flex-direction:column;
+    background:radial-gradient(circle at 1.5px 1.5px,rgba(232,196,119,.45) 1.4px,transparent 1.6px) 0 0/26px 26px,
+               linear-gradient(180deg,#fff6ea 0%,#fde6ec 100%);box-shadow:0 0 40px rgba(168,87,111,.25)}
+
+  /* progreso */
+  #top{display:none;padding:calc(14px + env(safe-area-inset-top)) 18px 6px}
+  #top.on{display:block}
+  .fila{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:800;font-size:14px;color:var(--rosa-oscuro)}
+  #atras{background:none;border:none;color:var(--marron);font:inherit;font-weight:800;font-size:14px;cursor:pointer;padding:6px 4px;visibility:hidden}
+  #atras.on{visibility:visible}
+  .barra{height:10px;border-radius:99px;background:rgba(232,196,119,.3);overflow:hidden}
+  .barra i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--dorado),var(--rosa-fuerte));transition:width .45s cubic-bezier(.3,.8,.3,1)}
+
+  .pantalla{display:none;flex:1;min-height:0;flex-direction:column;align-items:center;justify-content:center;padding:10px 18px calc(20px + env(safe-area-inset-bottom))}
+  .pantalla.on{display:flex;animation:entra .4s ease both}
+  @keyframes entra{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+
+  .marca{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dorado-oscuro);font-weight:800;margin-bottom:8px;text-align:center}
+  h1{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);margin:0 0 10px;text-align:center;
+    font-size:clamp(30px,9vw,40px);line-height:1.1}
+  .sub{margin:0 0 20px;text-align:center;font-size:16px;line-height:1.45;max-width:330px}
+  .piezas{display:flex;gap:8px;justify-content:center;font-size:32px;margin-bottom:18px;flex-wrap:wrap}
+  .piezas span{animation:flota 3s ease-in-out infinite}
+  .piezas span:nth-child(2n){animation-delay:.4s} .piezas span:nth-child(3n){animation-delay:.8s}
+  @keyframes flota{50%{transform:translateY(-6px)}}
+
+  /* pregunta */
+  #pregunta{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);text-align:center;
+    font-size:clamp(25px,7.6vw,33px);line-height:1.15;margin:0 0 20px;max-width:400px}
+  #opciones{width:100%;max-width:400px;display:flex;flex-direction:column;gap:11px}
+  .op{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:var(--blanco);border:2.5px solid #f0cfd7;border-radius:20px;
+    padding:15px 16px;font-family:inherit;font-weight:700;font-size:clamp(16px,4.6vw,18px);line-height:1.25;color:var(--marron);cursor:pointer;
+    box-shadow:0 4px 10px rgba(168,87,111,.12);transition:transform .15s,border-color .15s,background .15s;animation:sube .4s ease both}
+  .op:nth-child(2){animation-delay:.05s}.op:nth-child(3){animation-delay:.1s}.op:nth-child(4){animation-delay:.15s}
+  @keyframes sube{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .op .ic{font-size:28px;line-height:1;flex:none;width:36px;text-align:center}
+  .op:active{transform:scale(.97)}
+  .op.sel{border-color:var(--rosa-fuerte);background:linear-gradient(135deg,#fff3d6,#ffe3ea);transform:scale(1.02)}
+  #opciones.bloq .op{pointer-events:none}
+
+  /* resultado */
+  .tarjeta{width:100%;max-width:400px;background:var(--blanco);border:2.5px dashed #e7b9c4;border-radius:30px;padding:22px 20px 18px;text-align:center;
+    box-shadow:0 10px 30px rgba(168,87,111,.22),0 0 0 6px rgba(255,253,251,.7);position:relative}
+  #r-emoji{font-size:clamp(70px,22vw,96px);line-height:1;filter:drop-shadow(0 6px 8px rgba(168,87,111,.3));display:inline-block;height:1.1em}
+  #r-emoji img{height:1.1em;width:auto;max-width:2em;object-fit:contain}
+  .pantalla.on #r-emoji{animation:pop .9s cubic-bezier(.2,1.5,.4,1) both}
+  @keyframes pop{from{transform:scale(.1) rotate(-30deg);opacity:0}to{transform:none;opacity:1}}
+  #r-intro{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--dorado-oscuro);font-weight:800;margin:6px 0 2px}
+  #r-titulo{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);font-size:clamp(27px,8vw,34px);line-height:1.1;margin:0 0 8px}
+  .rasgos{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .rasgos span{background:var(--crema);border:1.5px solid #ecd9bb;border-radius:999px;padding:4px 11px;font-size:13px;font-weight:800;color:var(--dorado-oscuro)}
+  #r-desc{font-size:16px;line-height:1.45;margin:0 0 12px}
+  #r-rec{background:linear-gradient(135deg,#fff3d6,#ffe9ef);border:2px dashed var(--dorado);border-radius:16px;padding:9px 12px;font-size:14px;line-height:1.35}
+  #r-rec b{color:var(--rosa-oscuro)}
+  .btn{display:block;width:100%;border:none;border-radius:999px;padding:15px 18px;font-family:inherit;font-weight:800;font-size:18px;line-height:1.1;
+    cursor:pointer;color:#fff;margin-top:11px;transition:transform .15s}
+  .btn:active{transform:scale(.97)}
+  .btn.jugar{background:linear-gradient(135deg,#e592ab,#b9627c);box-shadow:0 6px 16px rgba(185,98,124,.4);font-size:21px;padding:17px}
+  .btn.wa{background:linear-gradient(135deg,#34c26c,#1f9a52);box-shadow:0 6px 14px rgba(31,154,82,.35)}
+  .btn.compartir{background:#fff;color:var(--rosa-oscuro);border:2px solid var(--rosa-fuerte)}
+  .btn.otra{background:none;color:var(--marron);text-decoration:underline;font-size:15px;font-weight:700;padding:10px;margin-top:4px}
+  #pantalla-res{overflow-y:auto;justify-content:flex-start;padding-top:calc(16px + env(safe-area-inset-top));-webkit-overflow-scrolling:touch}
+  #pantalla-res>*{flex:none}
+  #pantalla-res .tarjeta{margin-top:auto}
+  #pantalla-res .acciones{width:100%;max-width:400px;margin-bottom:auto}
+  @media (max-height:700px){h1{font-size:30px}.piezas{font-size:26px;margin-bottom:10px}#pregunta{margin-bottom:12px}.op{padding:11px 14px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top">
+    <div class="fila"><button id="atras" type="button">← Atrás</button><span id="num">Pregunta 1 de 5</span></div>
+    <div class="barra"><i id="barra"></i></div>
+  </div>
+
+  <!-- INICIO -->
+  <div class="pantalla on" id="p-inicio">
+    <div class="marca">Manojito · Artesanías de Mendoza</div>
+    <h1>¿Qué pieza Manojito sos?</h1>
+    <p class="sub">Respondé 5 preguntas rápidas y descubrí qué pieza hecha a mano representa tu estilo.</p>
+    <div class="piezas" id="piezas-inicio"></div>
+    <button class="btn jugar" id="b-empezar" type="button" style="max-width:400px">Empezar 🌸</button>
+    <div class="sub" style="margin:12px 0 0;font-size:13.5px;opacity:.8">Te lleva menos de 2 minutos</div>
+  </div>
+
+  <!-- PREGUNTAS -->
+  <div class="pantalla" id="p-pregunta">
+    <h2 id="pregunta"></h2>
+    <div id="opciones"></div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="pantalla" id="pantalla-res">
+    <div class="tarjeta">
+      <div id="r-emoji"></div>
+      <div id="r-intro">Tu resultado</div>
+      <h2 id="r-titulo"></h2>
+      <div class="rasgos" id="r-rasgos"></div>
+      <p id="r-desc"></p>
+      <div id="r-rec"></div>
+    </div>
+    <div class="acciones">
+      <button class="btn wa" id="b-quiero" type="button">💬 Quiero la mía</button>
+      <button class="btn compartir" id="b-compartir" type="button">🌸 Compartir mi resultado</button>
+      <button class="btn otra" id="b-otra" type="button">↻ Hacer el quiz de nuevo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   ⚙️  CONFIGURACIÓN: acá cambiás todo lo importante
+   ========================================================== */
+var CONFIG = {
+  whatsapp: '5492617142759',        // número con código de país, sin + ni espacios
+  linkCompartir: 'https://susytala.github.io/Web/quiz-pieza.html',  // link que se comparte
+
+  /* LAS 6 PIEZAS (resultados). La "clave" se usa en los puntos de las respuestas.
+     Para usar una foto real: imagen: 'imagenes/flor.png'  (si no carga, se usa el emoji).
+     "articulo" es para el título: "Sos una Flor Manojito" / "Sos un Lazo Manojito". */
+  piezas: {
+    flor: {
+      nombre: 'Flor', articulo: 'una', emoji: '🌸', imagen: '',
+      rasgos: ['Romántica', 'Dulce', 'Delicada'],
+      descripcion: 'Ves lo lindo en los detalles chiquitos. Tu corazón es enorme y tu estilo enamora sin esfuerzo.',
+      recomendado: 'Broches y horquillas con flores de porcelana fría'
+    },
+    lazo: {
+      nombre: 'Lazo', articulo: 'un', emoji: '🎀', imagen: '',
+      rasgos: ['Coqueta', 'Femenina', 'Clásica'],
+      descripcion: 'Siempre prolija, siempre linda. Tenés un toque coqueto que nunca pasa de moda.',
+      recomendado: 'Moñitos, imperdibles y accesorios para el pelo'
+    },
+    osito: {
+      nombre: 'Osito', articulo: 'un', emoji: '🧸', imagen: '',
+      rasgos: ['Tierna', 'Cariñosa', 'Cálida'],
+      descripcion: 'Sos puro abrazo. Con vos todos se sienten en casa, y tu estilo es igual de cálido.',
+      recomendado: 'Figuritas tiernas y detalles para regalar con cariño'
+    },
+    anillo: {
+      nombre: 'Anillo', articulo: 'un', emoji: '💍', imagen: '',
+      rasgos: ['Elegante', 'Minimalista', 'Sofisticada'],
+      descripcion: 'Menos es más y vos lo sabés. Elegís pocas cosas, todas con intención.',
+      recomendado: 'Piezas delicadas y minimalistas, para usar todos los días'
+    },
+    cupcake: {
+      nombre: 'Cupcake', articulo: 'un', emoji: '🧁', imagen: '',
+      rasgos: ['Divertida', 'Dulce', 'Alegre'],
+      descripcion: 'Donde estás vos hay risas y color. Tu energía contagia y tu estilo es una fiesta.',
+      recomendado: 'Piezas coloridas, dulces y divertidas'
+    },
+    mariposa: {
+      nombre: 'Mariposa', articulo: 'una', emoji: '🦋', imagen: '',
+      rasgos: ['Soñadora', 'Libre', 'Creativa'],
+      descripcion: 'Vivís en tu propio mundo y es hermoso. Libre y creativa, siempre buscás algo único.',
+      recomendado: 'Broches y diseños únicos, hechos a pedido'
+    }
+  },
+
+  /* PREGUNTAS Y RESPUESTAS.
+     "puntos" suma a una o más piezas: por ejemplo { flor: 2, lazo: 1 }.
+     "icono" es el emoji chiquito de la respuesta (podés dejarlo vacío ''). */
+  preguntas: [
+    {
+      texto: '¿Cómo es tu estilo ideal?',
+      opciones: [
+        { icono: '🌷', texto: 'Romántico: vestiditos, puntillas y tonos pastel', puntos: { flor: 2, lazo: 1 } },
+        { icono: '🎀', texto: 'Clásico y prolijo: coqueta, pero nunca de más',   puntos: { lazo: 2, anillo: 1 } },
+        { icono: '🤍', texto: 'Minimalista: pocas prendas, todas con onda',      puntos: { anillo: 2, lazo: 1 } },
+        { icono: '🎨', texto: 'Libre y artístico: mezclo texturas y estampas',   puntos: { mariposa: 2, flor: 1 } }
+      ]
+    },
+    {
+      texto: '¿Qué plan te gusta más para un sábado?',
+      opciones: [
+        { icono: '🍿', texto: 'Peli, manta y algo rico en casa',                 puntos: { osito: 2, mariposa: 1 } },
+        { icono: '🍰', texto: 'Juntada con amigas, risas y algo dulce',          puntos: { cupcake: 2, mariposa: 1 } },
+        { icono: '📸', texto: 'Salir a caminar, sacar fotos o pintar',           puntos: { mariposa: 2, cupcake: 1 } },
+        { icono: '☕', texto: 'Un café tranquilo en un lugar lindo',             puntos: { anillo: 2, lazo: 1 } }
+      ]
+    },
+    {
+      texto: '¿Qué color te representa más?',
+      opciones: [
+        { icono: '🌸', texto: 'Rosa pastel',                                     puntos: { flor: 2, mariposa: 1 } },
+        { icono: '🤎', texto: 'Beige y marroncitos calentitos',                  puntos: { osito: 2, anillo: 1 } },
+        { icono: '❤️', texto: 'Rojo o bordó, un clásico que nunca falla',        puntos: { lazo: 2, flor: 1 } },
+        { icono: '🌈', texto: 'Todos los colores, ¡cuanto más, mejor!',          puntos: { cupcake: 2, mariposa: 1 } }
+      ]
+    },
+    {
+      texto: '¿Qué accesorio usarías todos los días?',
+      opciones: [
+        { icono: '🎀', texto: 'Un moñito en el pelo',                            puntos: { lazo: 2, osito: 1 } },
+        { icono: '💍', texto: 'Un anillo fino y delicado',                       puntos: { anillo: 2, lazo: 1 } },
+        { icono: '✨', texto: 'Un broche o aros con mucho vuelo artístico',      puntos: { mariposa: 2, flor: 1 } },
+        { icono: '🍬', texto: 'Algo divertido y distinto cada día',              puntos: { cupcake: 2, osito: 1 } }
+      ]
+    },
+    {
+      texto: '¿Cómo describirías tu personalidad?',
+      opciones: [
+        { icono: '💗', texto: 'Romántica, de corazón enorme',                    puntos: { flor: 2, mariposa: 1 } },
+        { icono: '🤗', texto: 'Tierna y cariñosa con todos',                     puntos: { osito: 2, flor: 1 } },
+        { icono: '😄', texto: 'Divertida: donde estoy yo, hay risas',            puntos: { cupcake: 2, osito: 1 } },
+        { icono: '💎', texto: 'Segura y elegante: me gusta lo simple y bien hecho', puntos: { anillo: 2, lazo: 1 } }
+      ]
+    }
+  ]
+};
+
+/* ==========================================================
+   Quiz (no hace falta tocar nada de acá para abajo)
+   ========================================================== */
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var N = CONFIG.preguntas.length;
+  var idx = 0, respuestas = [], resultado = null, bloqueado = false;
+
+  /* piezas decorativas del inicio */
+  var claves = Object.keys(CONFIG.piezas);
+  claves.forEach(function(k){ var s = document.createElement('span'); pintar(s, CONFIG.piezas[k]); $('piezas-inicio').appendChild(s); });
+
+  function pintar(el, p){
+    el.textContent = '';
+    if(p.imagen){
+      var im = new Image(); im.alt = p.nombre; im.draggable = false; im.style.cssText = 'height:1em;width:auto;max-width:1.4em;object-fit:contain;vertical-align:middle';
+      im.onerror = function(){ el.textContent = p.emoji; };
+      im.src = p.imagen; el.appendChild(im);
+    } else el.textContent = p.emoji;
+  }
+
+  function mostrar(id){
+    ['p-inicio','p-pregunta','pantalla-res'].forEach(function(x){ $(x).classList.remove('on'); });
+    void $(id).offsetWidth;
+    $(id).classList.add('on');
+    $('top').classList.toggle('on', id === 'p-pregunta');
+  }
+
+  function pregunta(){
+    var q = CONFIG.preguntas[idx];
+    bloqueado = false;
+    $('num').textContent = 'Pregunta ' + (idx+1) + ' de ' + N;
+    $('barra').style.width = (idx/N*100) + '%';
+    $('atras').classList.toggle('on', idx > 0);
+    $('pregunta').textContent = q.texto;
+    var cont = $('opciones'); cont.className = ''; cont.innerHTML = '';
+    q.opciones.forEach(function(o, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'op';
+      if(respuestas[idx] === i) b.classList.add('sel');
+      var ic = document.createElement('span'); ic.className = 'ic'; ic.textContent = o.icono || '';
+      var tx = document.createElement('span'); tx.textContent = o.texto;
+      if(o.icono) b.appendChild(ic); b.appendChild(tx);
+      b.addEventListener('click', function(){ elegir(i, b); });
+      cont.appendChild(b);
+    });
+    mostrar('p-pregunta');
+  }
+
+  function elegir(i, boton){
+    if(bloqueado) return; bloqueado = true;
+    respuestas[idx] = i;
+    $('opciones').classList.add('bloq'); boton.classList.add('sel');
+    try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
+    setTimeout(function(){
+      idx++;
+      $('barra').style.width = (idx/N*100) + '%';
+      if(idx >= N) finalizar(); else pregunta();
+    }, 320);
+  }
+
+  /* suma puntos; ante un empate gana la pieza que sumó puntos más tarde (desempate estable) */
+  function calcular(resp){
+    var total = {}, reciente = {};
+    claves.forEach(function(k){ total[k] = 0; reciente[k] = 0; });
+    resp.forEach(function(r, qi){
+      var pts = CONFIG.preguntas[qi].opciones[r].puntos;
+      for(var k in pts){ if(total[k] === undefined) continue; total[k] += pts[k]; reciente[k] += pts[k] * (qi+1); }
+    });
+    return claves.slice().sort(function(a,b){ return (total[b]-total[a]) || (reciente[b]-reciente[a]); })[0];
+  }
+
+  function finalizar(){
+    resultado = calcular(respuestas);
+    var p = CONFIG.piezas[resultado];
+    pintar($('r-emoji'), p);
+    $('r-titulo').textContent = 'Sos ' + p.articulo + ' ' + p.nombre + ' Manojito';
+    var rs = $('r-rasgos'); rs.innerHTML = '';
+    p.rasgos.forEach(function(t){ var s = document.createElement('span'); s.textContent = t; rs.appendChild(s); });
+    $('r-desc').textContent = p.descripcion;
+    $('r-rec').innerHTML = '';
+    var b = document.createElement('b'); b.textContent = 'Te recomendamos: ';
+    $('r-rec').appendChild(b); $('r-rec').appendChild(document.createTextNode(p.recomendado));
+    mostrar('pantalla-res');
+    $('pantalla-res').scrollTop = 0;
+    try{ if(navigator.vibrate) navigator.vibrate([30,30,50]); }catch(e){}
+  }
+
+  function abrirWhatsApp(texto){
+    var url = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(texto);
+    var w = window.open(url, '_blank'); if(!w) location.href = url;
+  }
+  $('b-empezar').addEventListener('click', function(){ idx = 0; respuestas = []; pregunta(); });
+  $('atras').addEventListener('click', function(){ if(idx > 0 && !bloqueado){ idx--; pregunta(); } });
+  $('b-quiero').addEventListener('click', function(){
+    abrirWhatsApp('¡Hola! Hice el quiz ¿Qué pieza Manojito sos? y me salió ' + CONFIG.piezas[resultado].nombre + '. Quiero ver piezas parecidas 🌸');
+  });
+  $('b-compartir').addEventListener('click', function(){
+    abrirWhatsApp('¡Me salió ' + CONFIG.piezas[resultado].nombre + ' en el quiz ¿Qué pieza Manojito sos? 🌸 ¿Cuál te va a salir a vos? Jugá acá: ' + CONFIG.linkCompartir);
+  });
+  $('b-otra').addEventListener('click', function(){ idx = 0; respuestas = []; resultado = null; $('barra').style.width = '0'; mostrar('p-inicio'); });
+  document.addEventListener('touchmove', function(e){ if(!e.target.closest('#pantalla-res')) e.preventDefault(); }, { passive:false });
+  window.__quiz = { calcular: calcular, CONFIG: CONFIG, get resultado(){ return resultado; } }; // solo para pruebas
+})();
+</script>
+</body>
+</html>
