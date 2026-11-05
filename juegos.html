@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0e5a5a">
+<title>Juegos · Manojito</title>
+<meta name="description" content="Juegos de Manojito: jugá, divertite y ganá cupones de descuento.">
+<meta property="og:title" content="Juegos · Manojito">
+<meta property="og:description" content="Jugá y ganá cupones de descuento en Manojito.">
+<meta property="og:url" content="https://susytala.github.io/Web/juegos.html">
+<meta property="og:image" content="https://susytala.github.io/Web/imagenes/og-manojito.jpg">
+<meta property="og:locale" content="es_AR">
+<style>
+  :root{
+    --verde:#0e5a5a; --verde-claro:#e4f2f0; --rosa:#f4b6c5; --rosa-oscuro:#a8576f;
+    --crema:#fff6ea; --blanco:#fffdfb; --dorado:#e8c477; --marron:#5b4638;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--marron);
+    background:linear-gradient(180deg,var(--crema) 0%,#fdeef2 100%);min-height:100vh}
+  a{color:inherit;text-decoration:none}
+
+  /* barra superior (igual que Insumos) */
+  header.top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;
+    background:var(--verde);color:#fff;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+  .marca{font-family:Georgia,serif;font-weight:700;font-size:19px;line-height:1.1}
+  .marca em{display:block;font-family:'Nunito',system-ui,sans-serif;font-style:normal;font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--dorado);font-weight:800}
+  .nav a{background:rgba(255,255,255,.14);border-radius:999px;padding:8px 14px;font-weight:800;font-size:14px;white-space:nowrap}
+
+  /* encabezado de la sección */
+  .hero{text-align:center;padding:28px 18px 8px;max-width:760px;margin:0 auto}
+  .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--verde);font-weight:800}
+  h1{font-family:Georgia,serif;font-style:italic;color:var(--rosa-oscuro);margin:6px 0 8px;
+    font-size:clamp(28px,7vw,40px);line-height:1.15}
+  .hero p{margin:0 auto 14px;max-width:520px;line-height:1.5}
+  .chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+  .chips span{background:var(--blanco);border:1.5px solid #cfe3e0;border-radius:999px;padding:6px 12px;font-size:13.5px;font-weight:700}
+
+  /* grilla de juegos */
+  main{max-width:960px;margin:0 auto;padding:18px 16px 40px}
+  .grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .juego{display:flex;flex-direction:column;justify-content:space-between;gap:16px;background:var(--blanco);
+    border:2px solid #cfe3e0;border-radius:22px;padding:22px 18px 18px;text-align:center;
+    box-shadow:0 6px 18px rgba(14,90,90,.10);transition:transform .15s,box-shadow .15s}
+  .juego:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(14,90,90,.18)}
+  .juego .icono{font-size:46px;line-height:1}
+  .juego h2{font-family:Georgia,serif;font-size:20px;line-height:1.25;margin:0;color:var(--rosa-oscuro)}
+  .btn{display:block;border-radius:999px;padding:12px 16px;font-weight:800;font-size:16px;color:#fff;
+    background:linear-gradient(135deg,#e592ab,#b9627c);box-shadow:0 5px 14px rgba(185,98,124,.35)}
+  .btn:active{transform:scale(.97)}
+  .vacio{text-align:center;padding:30px 10px;opacity:.7}
+
+  footer{text-align:center;padding:22px 16px 30px;font-size:14px;line-height:1.6;background:var(--verde-claro)}
+  footer a{font-weight:800;text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="marca" href="https://susytala.github.io/Web/">Manojito <em>Juegos</em></a>
+  <nav class="nav"><a href="https://susytala.github.io/Web/">🛍️ Tienda</a></nav>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Juegos · Mendoza</div>
+  <h1>Jugá con Manojito</h1>
+  <p>Divertite un ratito y ganá cupones de descuento para tu próxima compra.</p>
+  <div class="chips"><span>🎮 Gratis</span><span>🎁 Cupones</span><span>📱 Desde el celu</span></div>
+</section>
+
+<main>
+  <div class="grilla" id="grilla"></div>
+</main>
+
+<footer>
+  <b>Manojito</b> · Juegos de Mendoza 🌸<br>
+  Hecho a mano con amor ·
+  <a href="https://wa.me/5492617142759">WhatsApp</a> ·
+  <a href="https://susytala.github.io/Web/">Tienda</a> ·
+  <a href="https://susytala.github.io/Web/insumos.html">Insumos</a><br>
+  © 2024 Manojito
+</footer>
+
+<script>
+/* ==========================================================
+   🎮 JUEGOS: para agregar uno nuevo, sumá una línea a esta lista.
+   Campos: nombre (el que se ve) · url (a dónde abre) · icono (emoji)
+   ========================================================== */
+var JUEGOS = [
+  { nombre: 'Atrapa las piezas de Manojito', url: 'juegos/atrapa-piezas.html', icono: '🧺' },
+  { nombre: '¿Cuál falta?', url: 'juegos/cual-falta.html', icono: '🔍' },
+  { nombre: '¿Qué pieza Manojito sos?', url: 'juegos/quiz-pieza.html', icono: '🌸' },
+  { nombre: 'Ordená el mostrador de Manojito', url: 'juegos/ordena-mostrador.html', icono: '📦' },
+  { nombre: 'Raspá y ganá', url: 'juegos/rasca-premio.html', icono: '🎁' }
+  /* , { nombre: 'Próximo juego', url: 'proximo-juego.html', icono: '🎲' } */
+];
+
+(function(){
+  var g = document.getElementById('grilla');
+  if(!JUEGOS.length){ g.innerHTML = '<div class="vacio">Pronto vas a encontrar juegos acá 🌸</div>'; return; }
+  JUEGOS.forEach(function(j){
+    var card = document.createElement('article'); card.className = 'juego';
+    var ic = document.createElement('div'); ic.className = 'icono'; ic.textContent = j.icono || '🎮';
+    var h = document.createElement('h2'); h.textContent = j.nombre;
+    var a = document.createElement('a'); a.className = 'btn'; a.href = j.url; a.textContent = 'Jugar 🌸';
+    card.appendChild(ic); card.appendChild(h); card.appendChild(a);
+    g.appendChild(card);
+  });
+})();
+</script>
+</body>
+</html>
