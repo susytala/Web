@@ -118,7 +118,8 @@ var CONFIG = {
   whatsapp: '5492617142759',        // número con código de país, sin + ni espacios
   linkCompartir: 'https://susytala.github.io/Web/juegos/rasca-premio.html',  // link que se comparte
 
-  intentosParaPremio: 20,           // el premio aparece recién en este intento (los anteriores no dan premio)
+  intentosPorCiclo: 3,              // cada ciclo tiene esta cantidad de tarjetas para raspar; al terminar vuelve a empezar
+  intentoConPremio: 2,              // solo esta tarjeta del ciclo da premio (las demás no)
 
   porcentajeParaRevelar: 50,        // % raspado para mostrar todo el premio automáticamente
   tamanoPincel: 24,                 // grosor del dedo al raspar (px)
@@ -132,11 +133,11 @@ var CONFIG = {
   /* PREMIOS. "peso" = probabilidad relativa: cuanto más alto, más seguido sale.
      Para usar una foto en vez de emoji: imagen: 'imagenes/premio.png' */
   premios: [
-    { emoji: '🌸', titulo: '5% OFF',  detalle: 'de descuento en tu próxima compra',            codigo: 'MANO5',  peso: 15, imagen: '' },
+    { emoji: '🌸', titulo: '5% OFF',  detalle: 'de descuento en tu próxima compra',            codigo: 'MANO5',  peso: 10, imagen: '' },
     { emoji: '🎀', titulo: '10% OFF', detalle: 'de descuento en tu próxima compra',            codigo: 'MANO10', peso: 0,  imagen: '' },
     { emoji: '✨', titulo: '15% OFF', detalle: 'de descuento en tu próxima compra',            codigo: 'MANO15', peso: 0,  imagen: '' },
-    { emoji: '🎁', titulo: 'Regalito', detalle: 'una pieza sorpresa de regalo con tu compra',  codigo: 'REGALITO', peso: 30, imagen: '' },
-    { emoji: '💌', titulo: 'Mes gratis', detalle: 'con tu primera suscripción mensual',        codigo: 'MESGRATIS', peso: 35, imagen: '' },
+    { emoji: '🎁', titulo: 'Regalito', detalle: 'una pieza sorpresa de regalo con tu compra',  codigo: 'REGALITO', peso: 35, imagen: '' },
+    { emoji: '💌', titulo: 'Mes gratis', detalle: 'con tu primera suscripción mensual',        codigo: 'MESGRATIS', peso: 20, imagen: '' },
     { emoji: '🧸', titulo: '20% OFF', detalle: 'en un accesorio a elección',                   codigo: 'MANO20', peso: 0,  imagen: '' }
   ]
 };
@@ -182,9 +183,9 @@ var CONFIG = {
   }
 
   /* ---------- intentos: solo el intento número 20 da premio ---------- */
-  function leerIntentos(){ try{ var n = parseInt(localStorage.getItem(KEY_INT), 10); return (n >= 0 && n < CONFIG.intentosParaPremio) ? n : 0; }catch(e){ return 0; } }
+  function leerIntentos(){ try{ var n = parseInt(localStorage.getItem(KEY_INT), 10); return (n >= 0 && n < CONFIG.intentosPorCiclo) ? n : 0; }catch(e){ return 0; } }
   function guardarIntentos(n){ try{ localStorage.setItem(KEY_INT, String(n)); }catch(e){} }
-  function pintarIntentos(){ $('intentos').textContent = '🎟️ Intento ' + intentoActual + ' de ' + CONFIG.intentosParaPremio; }
+  function pintarIntentos(){ $('intentos').textContent = '🎟️ Intento ' + intentoActual + ' de ' + CONFIG.intentosPorCiclo; }
   var SIN_PREMIO = { emoji:'🌸', titulo:'¡Casi!', detalle:'Esta vez no hubo premio. ¡Seguí intentando!', codigo:'', imagen:'' };
 
   function mostrarPremio(p){
@@ -285,8 +286,8 @@ var CONFIG = {
     if(revelado) return; revelado = true; raspando = false;
     cv.classList.add('fuera'); tarjeta.classList.add('listo'); $('premio').classList.add('on');
     $('barra').style.width = '100%';
-    if(hayPremio){ guardarIntentos(0); recordarDia(); }                // intento 20: premio y el ciclo vuelve a empezar
-    else if(!yaContado){ guardarIntentos(intentoActual); }             // intentos 1 a 19: se cuenta, sin premio
+    if(hayPremio) recordarDia();                                       // tarjeta con premio
+    if(!yaContado){ guardarIntentos(intentoActual >= CONFIG.intentosPorCiclo ? 0 : intentoActual); }  // se cuenta; al terminar el ciclo vuelve a 0
     yaContado = true;
     try{ if(navigator.vibrate) navigator.vibrate(hayPremio ? [40,30,60] : [30]); }catch(e){}
     if(hayPremio) confeti();
@@ -296,7 +297,11 @@ var CONFIG = {
       $('b-otra').classList.toggle('oculto', hayPremio ? (CONFIG.unaPorDia || !CONFIG.permitirOtraTarjeta) : false);
       var av = $('aviso');
       if(hayPremio){ av.classList.add('oculto'); }
-      else { var f = CONFIG.intentosParaPremio - intentoActual; av.textContent = f === 1 ? '¡El próximo intento tiene premio! 🎁' : 'Te faltan ' + f + ' intentos para el premio'; av.classList.remove('oculto'); }
+      else {
+        var f = CONFIG.intentoConPremio - intentoActual;
+        av.textContent = f === 1 ? '¡El próximo intento tiene premio! 🎁' : (f > 1 ? 'Te faltan ' + f + ' intentos para el premio' : '¡Volvemos a empezar! La segunda tarjeta tiene premio 🎁');
+        av.classList.remove('oculto');
+      }
     }, 650);
   }
   $('b-todo').addEventListener('click', revelar);
@@ -348,7 +353,7 @@ var CONFIG = {
     $('zona-premio').classList.add('oculto'); $('zona-raspar').classList.remove('oculto'); $('barra').style.width = '0';
     yaContado = false;
     intentoActual = leerIntentos() + 1;
-    hayPremio = intentoActual >= CONFIG.intentosParaPremio;
+    hayPremio = intentoActual === CONFIG.intentoConPremio;
     var guardado = hayPremio ? premioDelDia() : null;
     premio = hayPremio ? (guardado ? guardado.premio : sortear()) : SIN_PREMIO;
     pintarIntentos();
