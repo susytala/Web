@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fde6ec">
+<title>Raspá y ganá · Manojito</title>
+<meta name="description" content="Raspá la tarjeta, descubrí tu premio y canjealo por WhatsApp en Manojito.">
+<style>
+  :root{
+    --rosa:#f4b6c5; --rosa-fuerte:#d9849d; --rosa-oscuro:#a8576f;
+    --crema:#fff6ea; --blanco:#fffdfb; --dorado:#e8c477; --dorado-oscuro:#b88a3e; --marron:#7a5a48;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#f3d9df;
+    font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--marron);-webkit-user-select:none;user-select:none}
+  #app{position:relative;margin:0 auto;height:100vh;height:100dvh;max-width:520px;overflow:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top)) 18px calc(16px + env(safe-area-inset-bottom));
+    background:radial-gradient(circle at 1.5px 1.5px,rgba(232,196,119,.45) 1.4px,transparent 1.6px) 0 0/26px 26px,
+               linear-gradient(180deg,#fff6ea 0%,#fde6ec 100%);box-shadow:0 0 40px rgba(168,87,111,.25)}
+
+  .marca{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--dorado-oscuro);font-weight:800;margin-bottom:6px;text-align:center}
+  h1{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);margin:0 0 6px;text-align:center;
+    font-size:clamp(26px,8vw,34px);line-height:1.12}
+  .sub{margin:0 0 18px;text-align:center;font-size:15px;line-height:1.4;max-width:320px}
+
+  /* tarjeta con forma de etiqueta */
+  #tarjeta{position:relative;width:min(100%,380px);aspect-ratio:1.45/1;border-radius:22px;
+    filter:drop-shadow(0 12px 18px rgba(168,87,111,.3));transform:rotate(-1.2deg);transition:transform .5s}
+  #tarjeta.listo{transform:rotate(0) scale(1.02)}
+  .forma{position:absolute;inset:0;border-radius:22px;overflow:hidden;background:var(--blanco);border:3px solid #f0cfd7;
+    -webkit-mask:radial-gradient(circle 13px at 0 50%,transparent 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 13px at 100% 50%,transparent 98%,#000) right/51% 100% no-repeat;
+            mask:radial-gradient(circle 13px at 0 50%,transparent 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 13px at 100% 50%,transparent 98%,#000) right/51% 100% no-repeat}
+  .ojal{position:absolute;top:10px;left:50%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#f3d9df;border:2px solid var(--dorado);z-index:4;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.15)}
+  .lazo{position:absolute;top:-6px;left:50%;width:56px;height:26px;margin-left:-28px;z-index:5;pointer-events:none;font-size:26px;text-align:center;line-height:26px}
+
+  /* premio escondido */
+  #premio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 16px 12px;
+    background:radial-gradient(circle at 50% 35%,#fffdf6 0%,#fff0c9 55%,#ffe3ea 100%)}
+  #p-emoji{font-size:clamp(40px,13vw,58px);line-height:1;filter:drop-shadow(0 3px 4px rgba(168,87,111,.25))}
+  #p-titulo{font-family:Georgia,'Lora',serif;font-weight:700;color:var(--rosa-oscuro);font-size:clamp(22px,7vw,30px);line-height:1.1;margin:6px 0 2px}
+  #p-detalle{font-size:14px;line-height:1.3;font-weight:700;padding:0 6px}
+  #p-codigo{margin-top:8px;display:inline-block;border:2px dashed var(--dorado-oscuro);border-radius:12px;padding:4px 14px;font-family:Georgia,serif;
+    font-weight:700;letter-spacing:.12em;color:var(--rosa-oscuro);background:rgba(255,255,255,.7);font-size:17px}
+
+  /* capa para raspar */
+  #raspa{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;transition:opacity .7s ease,transform .7s ease;z-index:3}
+  #raspa.fuera{opacity:0;transform:scale(1.06);pointer-events:none}
+  #tarjeta.listo .forma{animation:brilla 1s ease .1s}
+  @keyframes brilla{0%{box-shadow:0 0 0 0 rgba(232,196,119,.9)}100%{box-shadow:0 0 0 26px rgba(232,196,119,0)}}
+  #premio.on #p-emoji{animation:salta .8s cubic-bezier(.2,1.4,.4,1) both}
+  #premio.on #p-titulo,#premio.on #p-detalle,#premio.on #p-codigo{animation:sube .6s ease both}
+  #premio.on #p-detalle{animation-delay:.1s} #premio.on #p-codigo{animation-delay:.2s}
+  @keyframes salta{from{transform:scale(.2) rotate(-25deg);opacity:0}to{transform:none;opacity:1}}
+  @keyframes sube{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+  #confeti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8}
+
+  /* acciones */
+  #acciones{width:min(100%,380px);margin-top:20px;min-height:120px}
+  .progreso{height:8px;border-radius:99px;background:rgba(232,196,119,.3);overflow:hidden;margin-bottom:12px}
+  .progreso i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--dorado),var(--rosa-fuerte));transition:width .15s}
+  .btn{display:block;width:100%;border:none;border-radius:999px;padding:14px 18px;font-family:inherit;font-weight:800;font-size:17px;line-height:1.1;
+    cursor:pointer;color:#fff;margin-top:10px;transition:transform .15s}
+  .btn:active{transform:scale(.97)}
+  .btn.todo{background:#fff;color:var(--rosa-oscuro);border:2px solid var(--rosa-fuerte)}
+  .btn.wa{background:linear-gradient(135deg,#34c26c,#1f9a52);box-shadow:0 6px 14px rgba(31,154,82,.35);animation:sube .5s ease both}
+  .btn.compartir{background:#fff;color:var(--rosa-oscuro);border:2px solid var(--rosa-fuerte);animation:sube .5s ease .1s both}
+  .btn.otra{background:none;color:var(--marron);text-decoration:underline;font-size:15px;font-weight:700;padding:10px;animation:sube .5s ease .2s both}
+  .oculto{display:none!important}
+  .aviso{margin-top:8px;text-align:center;font-size:13px;color:var(--dorado-oscuro);font-weight:800}
+  @media (max-height:640px){.sub{display:none}#acciones{margin-top:12px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="marca">Manojito · Artesanías de Mendoza</div>
+  <h1>Raspa y descubrí tu premio ✨</h1>
+  <p class="sub" id="sub">Pasá el dedo por la tarjeta y mirá qué sorpresa te tocó.</p>
+
+  <p class="aviso" id="intentos" aria-live="polite" style="margin:0 0 12px"></p>
+
+  <div id="tarjeta">
+    <div class="lazo">🎀</div>
+    <div class="forma">
+      <div id="premio">
+        <div id="p-emoji">🎁</div>
+        <div id="p-titulo"></div>
+        <div id="p-detalle"></div>
+        <div id="p-codigo"></div>
+      </div>
+      <canvas id="raspa" aria-label="Tarjeta para raspar"></canvas>
+    </div>
+    <div class="ojal"></div>
+  </div>
+
+  <div id="acciones">
+    <div id="zona-raspar">
+      <div class="progreso"><i id="barra"></i></div>
+      <button class="btn todo" id="b-todo" type="button">✨ Raspar todo</button>
+    </div>
+    <div id="zona-premio" class="oculto">
+      <button class="btn wa" id="b-canjear" type="button">💬 Canjear por WhatsApp</button>
+      <button class="btn compartir" id="b-compartir" type="button">🌸 Compartir con una amiga</button>
+      <button class="btn otra oculto" id="b-otra" type="button">↻ Raspar otra tarjeta</button>
+      <div class="aviso oculto" id="aviso"></div>
+    </div>
+  </div>
+  <canvas id="confeti"></canvas>
+</div>
+
+<script>
+/* ==========================================================
+   ⚙️  CONFIGURACIÓN: acá cambiás todo lo importante
+   ========================================================== */
+var CONFIG = {
+  whatsapp: '5492617142759',        // número con código de país, sin + ni espacios
+  linkCompartir: 'https://susytala.github.io/Web/juegos/rasca-premio.html',  // link que se comparte
+
+  intentosParaPremio: 20,           // el premio aparece recién en este intento (los anteriores no dan premio)
+
+  porcentajeParaRevelar: 50,        // % raspado para mostrar todo el premio automáticamente
+  tamanoPincel: 24,                 // grosor del dedo al raspar (px)
+  textoCapa: 'Raspá acá',           // texto de la capa
+  colorCapa: ['#f7c9d4', '#f3dca4', '#f7c9d4'], // degradé de la capa (rosa y dorado claro)
+
+  /* Una sola tarjeta por persona y por día (si es false, pueden raspar todas las veces que quieran) */
+  unaPorDia: false,
+  permitirOtraTarjeta: true,        // muestra el botón "Raspar otra tarjeta" (si unaPorDia es false)
+
+  /* PREMIOS. "peso" = probabilidad relativa: cuanto más alto, más seguido sale.
+     Para usar una foto en vez de emoji: imagen: 'imagenes/premio.png' */
+  premios: [
+    { emoji: '🌸', titulo: '5% OFF',  detalle: 'de descuento en tu próxima compra',            codigo: 'MANO5',  peso: 15, imagen: '' },
+    { emoji: '🎀', titulo: '10% OFF', detalle: 'de descuento en tu próxima compra',            codigo: 'MANO10', peso: 0,  imagen: '' },
+    { emoji: '✨', titulo: '15% OFF', detalle: 'de descuento en tu próxima compra',            codigo: 'MANO15', peso: 0,  imagen: '' },
+    { emoji: '🎁', titulo: 'Regalito', detalle: 'una pieza sorpresa de regalo con tu compra',  codigo: 'REGALITO', peso: 30, imagen: '' },
+    { emoji: '💌', titulo: 'Mes gratis', detalle: 'con tu primera suscripción mensual',        codigo: 'MESGRATIS', peso: 35, imagen: '' },
+    { emoji: '🧸', titulo: '20% OFF', detalle: 'en un accesorio a elección',                   codigo: 'MANO20', peso: 0,  imagen: '' }
+  ]
+};
+
+/* ==========================================================
+   Juego (no hace falta tocar nada de acá para abajo)
+   ========================================================== */
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var cv = $('raspa'), ctx = cv.getContext('2d', { willReadFrequently:true });
+  var tarjeta = $('tarjeta');
+  var W = 0, H = 0, dpr = 1;
+  var yaContado = false, premio = null, raspando = false, revelado = false, tocada = false, ultimo = null, ultimoCalc = 0;
+  var KEY_DIA = 'manojito_rasca_dia';
+  var KEY_INT = 'manojito_rasca_intentos';   // intentos ya hechos (se guarda en este navegador)
+  var intentoActual = 1, hayPremio = false;
+
+  /* ---------- sorteo del premio ---------- */
+  function sortear(){
+    function pesoDe(p){ return (typeof p.peso === 'number' && p.peso >= 0) ? p.peso : 1; }   /* peso 0 = ese premio nunca sale */
+    var total = 0; CONFIG.premios.forEach(function(p){ total += pesoDe(p); });
+    if(total <= 0) return CONFIG.premios[0];
+    var r = Math.random() * total;
+    for(var i=0;i<CONFIG.premios.length;i++){ var w = pesoDe(CONFIG.premios[i]); if(w > 0 && r < w) return CONFIG.premios[i]; r -= w; }
+    for(var j=CONFIG.premios.length-1;j>=0;j--) if(pesoDe(CONFIG.premios[j]) > 0) return CONFIG.premios[j];
+    return CONFIG.premios[0];
+  }
+  function hoy(){ var d = new Date(); return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
+  function premioDelDia(){
+    if(!CONFIG.unaPorDia) return null;
+    try{
+      var g = JSON.parse(localStorage.getItem(KEY_DIA) || 'null');
+      if(g && g.dia === hoy()){
+        for(var i=0;i<CONFIG.premios.length;i++) if(CONFIG.premios[i].codigo === g.codigo) return { premio:CONFIG.premios[i], yaRaspado:true };
+      }
+    }catch(e){}
+    return null;
+  }
+  function recordarDia(){
+    if(!CONFIG.unaPorDia) return;
+    try{ localStorage.setItem(KEY_DIA, JSON.stringify({ dia:hoy(), codigo:premio.codigo })); }catch(e){}
+  }
+
+  /* ---------- intentos: solo el intento número 20 da premio ---------- */
+  function leerIntentos(){ try{ var n = parseInt(localStorage.getItem(KEY_INT), 10); return (n >= 0 && n < CONFIG.intentosParaPremio) ? n : 0; }catch(e){ return 0; } }
+  function guardarIntentos(n){ try{ localStorage.setItem(KEY_INT, String(n)); }catch(e){} }
+  function pintarIntentos(){ $('intentos').textContent = '🎟️ Intento ' + intentoActual + ' de ' + CONFIG.intentosParaPremio; }
+  var SIN_PREMIO = { emoji:'🌸', titulo:'¡Casi!', detalle:'Esta vez no hubo premio. ¡Seguí intentando!', codigo:'', imagen:'' };
+
+  function mostrarPremio(p){
+    var em = $('p-emoji'); em.textContent = '';
+    if(p.imagen){
+      var im = new Image(); im.alt = p.titulo; im.style.cssText = 'width:1.3em;height:1.3em;object-fit:contain';
+      im.onerror = function(){ em.textContent = p.emoji; };
+      im.src = p.imagen; em.appendChild(im);
+    } else em.textContent = p.emoji;
+    $('p-titulo').textContent = p.titulo;
+    $('p-detalle').textContent = p.detalle;
+    $('p-codigo').textContent = p.codigo ? 'Cupón ' + p.codigo : '';
+    $('p-codigo').style.display = p.codigo ? '' : 'none';
+  }
+
+  /* ---------- capa de raspado ---------- */
+  function pintarCapa(){
+    var r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = r.width; H = r.height;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.globalCompositeOperation = 'source-over';
+    var g = ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0, CONFIG.colorCapa[0]); g.addColorStop(.5, CONFIG.colorCapa[1]); g.addColorStop(1, CONFIG.colorCapa[2]);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    /* textura de brillitos */
+    for(var i=0;i<230;i++){
+      ctx.fillStyle = Math.random() < .5 ? 'rgba(255,255,255,.5)' : 'rgba(184,138,62,.28)';
+      var s = Math.random()*2.2 + .5; ctx.beginPath(); ctx.arc(Math.random()*W, Math.random()*H, s, 0, 6.28); ctx.fill();
+    }
+    /* estampado de florcitas */
+    ctx.font = Math.round(W*0.07) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = .28;
+    var paso = W*0.17;
+    for(var y = paso*0.6, f = 0; y < H; y += paso, f++){
+      for(var x = (f%2 ? paso*0.5 : paso*0.1); x < W + paso; x += paso) ctx.fillText('🌸', x, y);
+    }
+    ctx.globalAlpha = 1;
+    /* marco dorado fino */
+    ctx.strokeStyle = 'rgba(184,138,62,.6)'; ctx.lineWidth = 2; ctx.setLineDash([7,6]);
+    ctx.strokeRect(10,10,W-20,H-20); ctx.setLineDash([]);
+    /* texto */
+    ctx.fillStyle = 'rgba(122,70,90,.92)'; ctx.shadowColor = 'rgba(255,255,255,.8)'; ctx.shadowBlur = 6;
+    ctx.font = 'italic 700 ' + Math.round(W*0.11) + 'px Georgia, "Lora", serif';
+    ctx.fillText(CONFIG.textoCapa, W/2, H/2 - W*0.02);
+    ctx.shadowBlur = 0; ctx.font = '800 ' + Math.round(W*0.042) + 'px Nunito, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(122,70,90,.7)'; ctx.fillText('✨ pasá el dedo ✨', W/2, H/2 + W*0.085);
+  }
+
+  function raspar(x, y){
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = CONFIG.tamanoPincel * 2;
+    ctx.beginPath();
+    if(ultimo){ ctx.moveTo(ultimo.x, ultimo.y); ctx.lineTo(x, y); } else { ctx.moveTo(x, y); ctx.lineTo(x + .01, y); }
+    ctx.stroke();
+    ultimo = { x:x, y:y };
+  }
+
+  /* porcentaje de superficie raspada (muestrea una grilla de píxeles) */
+  function porcentaje(){
+    var w = cv.width, h = cv.height, data;
+    try{ data = ctx.getImageData(0,0,w,h).data; }catch(e){ return 0; }
+    var paso = Math.max(4, Math.round(Math.min(w,h)/40)), total = 0, vacios = 0;
+    for(var y=paso; y<h-paso; y+=paso){
+      for(var x=paso; x<w-paso; x+=paso){ total++; if(data[(y*w + x)*4 + 3] < 40) vacios++; }
+    }
+    return total ? vacios/total*100 : 0;
+  }
+  function revisar(forzar){
+    var now = performance.now();
+    if(!forzar && now - ultimoCalc < 120) return;
+    ultimoCalc = now;
+    var p = porcentaje();
+    $('barra').style.width = Math.min(100, p/CONFIG.porcentajeParaRevelar*100) + '%';
+    if(p >= CONFIG.porcentajeParaRevelar) revelar();
+  }
+
+  function pos(e){ var r = cv.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top }; }
+  cv.addEventListener('pointerdown', function(e){
+    if(revelado) return;
+    raspando = true; tocada = true; ultimo = null;
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+    var p = pos(e); raspar(p.x, p.y); e.preventDefault();
+  });
+  cv.addEventListener('pointermove', function(e){
+    if(!raspando || revelado) return;
+    var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    (evs.length ? evs : [e]).forEach(function(ev){ var p = pos(ev); raspar(p.x, p.y); });
+    revisar(false); e.preventDefault();
+  });
+  function soltar(){ if(!raspando) return; raspando = false; ultimo = null; if(!revelado) revisar(true); }
+  cv.addEventListener('pointerup', soltar); cv.addEventListener('pointercancel', soltar);
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive:false });
+
+  /* ---------- revelar ---------- */
+  function revelar(){
+    if(revelado) return; revelado = true; raspando = false;
+    cv.classList.add('fuera'); tarjeta.classList.add('listo'); $('premio').classList.add('on');
+    $('barra').style.width = '100%';
+    if(hayPremio){ guardarIntentos(0); recordarDia(); }                // intento 20: premio y el ciclo vuelve a empezar
+    else if(!yaContado){ guardarIntentos(intentoActual); }             // intentos 1 a 19: se cuenta, sin premio
+    yaContado = true;
+    try{ if(navigator.vibrate) navigator.vibrate(hayPremio ? [40,30,60] : [30]); }catch(e){}
+    if(hayPremio) confeti();
+    setTimeout(function(){
+      $('zona-raspar').classList.add('oculto'); $('zona-premio').classList.remove('oculto');
+      $('b-canjear').classList.toggle('oculto', !hayPremio); $('b-compartir').classList.toggle('oculto', !hayPremio);
+      $('b-otra').classList.toggle('oculto', hayPremio ? (CONFIG.unaPorDia || !CONFIG.permitirOtraTarjeta) : false);
+      var av = $('aviso');
+      if(hayPremio){ av.classList.add('oculto'); }
+      else { var f = CONFIG.intentosParaPremio - intentoActual; av.textContent = f === 1 ? '¡El próximo intento tiene premio! 🎁' : 'Te faltan ' + f + ' intentos para el premio'; av.classList.remove('oculto'); }
+    }, 650);
+  }
+  $('b-todo').addEventListener('click', revelar);
+
+  /* ---------- confeti ---------- */
+  function confeti(){
+    var c = $('confeti'), x = c.getContext('2d'), r = c.getBoundingClientRect(), d = Math.min(window.devicePixelRatio||1, 2);
+    c.width = r.width*d; c.height = r.height*d; x.setTransform(d,0,0,d,0,0);
+    var tr = tarjeta.getBoundingClientRect(), cx = tr.left - r.left + tr.width/2, cy = tr.top - r.top + tr.height/2;
+    var cols = ['#f4a9bd','#e8c477','#fff','#d9849d','#f7dca0'], ps = [];
+    for(var i=0;i<90;i++){
+      var a = Math.random()*6.28, v = 120 + Math.random()*320;
+      ps.push({ x:cx, y:cy, vx:Math.cos(a)*v, vy:Math.sin(a)*v - 160, g:520, r:3+Math.random()*4, rot:Math.random()*6.28, vr:(Math.random()-.5)*10,
+        c:cols[i%cols.length], t:0, vida:1.4+Math.random()*.8, form:i%3 });
+    }
+    var t0 = performance.now(), prev = t0;
+    (function paso(now){
+      var dt = Math.min(.04,(now-prev)/1000); prev = now;
+      x.clearRect(0,0,r.width,r.height); var vivo = false;
+      ps.forEach(function(p){
+        p.t += dt; if(p.t > p.vida) return; vivo = true;
+        p.vy += p.g*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt;
+        x.save(); x.globalAlpha = Math.max(0, 1 - p.t/p.vida); x.translate(p.x,p.y); x.rotate(p.rot); x.fillStyle = p.c;
+        if(p.form===0){ x.beginPath(); x.arc(0,0,p.r,0,6.28); x.fill(); }
+        else if(p.form===1){ x.fillRect(-p.r,-p.r/2,p.r*2,p.r); }
+        else { x.beginPath(); for(var k=0;k<8;k++){ var rad = k%2? p.r*.5 : p.r*1.5, an = k*Math.PI/4; x.lineTo(Math.cos(an)*rad, Math.sin(an)*rad); } x.closePath(); x.fill(); }
+        x.restore();
+      });
+      if(vivo) requestAnimationFrame(paso); else x.clearRect(0,0,r.width,r.height);
+    })(t0);
+  }
+
+  /* ---------- WhatsApp ---------- */
+  function abrirWhatsApp(texto){
+    var url = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(texto);
+    var w = window.open(url, '_blank'); if(!w) location.href = url;
+  }
+  $('b-canjear').addEventListener('click', function(){
+    abrirWhatsApp('¡Hola! Raspé la tarjeta de Manojito y gané: ' + premio.titulo + ' ' + premio.detalle + ' (cupón ' + premio.codigo + '). Quiero canjearlo 🌸');
+  });
+  $('b-compartir').addEventListener('click', function(){
+    abrirWhatsApp('¡Raspé la tarjeta de Manojito y me tocó ' + premio.titulo + '! 🌸 Probá vos también: ' + CONFIG.linkCompartir);
+  });
+
+  /* ---------- arranque ---------- */
+  function nueva(){
+    revelado = false; tocada = false; raspando = false; ultimo = null;
+    cv.classList.remove('fuera'); tarjeta.classList.remove('listo'); $('premio').classList.remove('on');
+    $('zona-premio').classList.add('oculto'); $('zona-raspar').classList.remove('oculto'); $('barra').style.width = '0';
+    yaContado = false;
+    intentoActual = leerIntentos() + 1;
+    hayPremio = intentoActual >= CONFIG.intentosParaPremio;
+    var guardado = hayPremio ? premioDelDia() : null;
+    premio = hayPremio ? (guardado ? guardado.premio : sortear()) : SIN_PREMIO;
+    pintarIntentos();
+    mostrarPremio(premio);
+    pintarCapa();
+    if(guardado){
+      /* ya raspó hoy: muestra el mismo premio */
+      $('sub').textContent = 'Hoy ya raspaste tu tarjeta. ¡Este es tu premio! Volvé mañana por otra 🌸';
+      yaContado = true; revelar();
+    }
+  }
+  $('b-otra').addEventListener('click', nueva);
+  window.addEventListener('resize', function(){ if(!revelado && !tocada) pintarCapa(); });
+  window.addEventListener('orientationchange', function(){ setTimeout(function(){ if(!revelado && !tocada) pintarCapa(); }, 250); });
+  nueva();
+  window.__rasca = { revelar: revelar, get premio(){ return premio; }, get revelado(){ return revelado; } }; // solo para pruebas
+})();
+</script>
+</body>
+</html>
