@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#fde6ec">
+<title>Atrapa las piezas de Manojito</title>
+<meta name="description" content="Jugá, atrapá las piezas de porcelana fría y ganá un cupón de descuento en Manojito.">
+<style>
+  :root{
+    --rosa:#f4b6c5; --rosa-fuerte:#d9849d; --rosa-oscuro:#a8576f;
+    --crema:#fff6ea; --blanco:#fffdfb; --dorado:#e8c477; --dorado-oscuro:#b88a3e;
+    --marron:#7a5a48;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#f3d9df;
+    font-family:'Nunito','Segoe UI',system-ui,-apple-system,sans-serif;color:var(--marron);
+    -webkit-user-select:none;user-select:none;touch-action:none}
+  #app{position:relative;margin:0 auto;height:100vh;height:100dvh;max-width:520px;overflow:hidden;
+    background:linear-gradient(180deg,#fff6ea 0%,#fde6ec 100%);box-shadow:0 0 40px rgba(168,87,111,.25)}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+  /* barra superior */
+  #hud{position:absolute;top:0;left:0;right:0;display:none;justify-content:space-between;align-items:center;
+    gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 8px;pointer-events:none;z-index:3}
+  #hud .chip{background:rgba(255,253,251,.92);border:2px solid #f0cfd7;border-radius:999px;padding:6px 13px;
+    font-weight:800;font-size:15px;color:var(--rosa-oscuro);box-shadow:0 2px 8px rgba(168,87,111,.15);white-space:nowrap}
+  #hud .chip b{font-size:17px}
+  #barra{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(232,196,119,.25);display:none;z-index:3}
+  #barra i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--dorado),var(--rosa-fuerte));transform-origin:left}
+
+  /* pantallas */
+  .pantalla{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;z-index:5;
+    background:rgba(255,246,234,.72);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+  .pantalla.on{display:flex}
+  .tarjeta{width:100%;max-width:380px;background:var(--blanco);border:2.5px dashed #e7b9c4;border-radius:28px;
+    padding:26px 22px 22px;text-align:center;box-shadow:0 10px 30px rgba(168,87,111,.22),0 0 0 6px rgba(255,253,251,.7);
+    animation:subir .45s cubic-bezier(.2,.9,.3,1.1)}
+  @keyframes subir{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+  .logo{font-size:44px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 3px 4px rgba(168,87,111,.25))}
+  h1{font-family:Georgia,'Lora',serif;font-style:italic;font-weight:700;color:var(--rosa-oscuro);margin:2px 0 8px;
+    font-size:clamp(25px,7.5vw,32px);line-height:1.15}
+  h1 small{display:block;font-size:.5em;font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--dorado-oscuro);font-family:'Nunito',system-ui,sans-serif;margin-bottom:4px}
+  .tarjeta p{margin:0 0 12px;line-height:1.45;font-size:15.5px}
+  .reglas{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
+  .reglas span{background:var(--crema);border:1.5px solid #ecd9bb;border-radius:999px;padding:6px 11px;font-size:13.5px;font-weight:700}
+  .btn{display:block;width:100%;border:none;border-radius:999px;padding:14px 18px;font:800 17px/1.1 inherit;font-family:inherit;
+    cursor:pointer;color:#fff;margin-top:10px;transition:transform .15s}
+  .btn:active{transform:scale(.97)}
+  .btn.jugar{background:linear-gradient(135deg,#e592ab,#b9627c);box-shadow:0 6px 16px rgba(185,98,124,.4);font-size:20px;padding:16px}
+  .btn.wa{background:linear-gradient(135deg,#34c26c,#1f9a52);box-shadow:0 6px 14px rgba(31,154,82,.35)}
+  .btn.compartir{background:#fff;color:var(--rosa-oscuro);border:2px solid var(--rosa-fuerte)}
+  .btn.otra{background:none;color:var(--marron);text-decoration:underline;font-size:15px;font-weight:700;padding:10px}
+  .mejor{margin-top:12px;font-size:13.5px;color:var(--dorado-oscuro);font-weight:800}
+  /* fin */
+  .puntos{font-family:Georgia,serif;font-size:62px;font-weight:700;color:var(--rosa-oscuro);line-height:1;margin:4px 0 0}
+  .puntos-t{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dorado-oscuro);font-weight:800;margin-bottom:10px}
+  .cupon{background:linear-gradient(135deg,#fff3d6,#ffe9ef);border:2px dashed var(--dorado);border-radius:18px;padding:12px 12px 10px;margin:8px 0 6px}
+  .cupon b{display:block;font-family:Georgia,serif;font-size:26px;letter-spacing:.1em;color:var(--rosa-oscuro)}
+  .cupon span{font-size:14px;line-height:1.35;display:block}
+  .pie{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom));text-align:center;font-size:12px;opacity:.6;z-index:6;pointer-events:none}
+  @media (max-height:640px){.logo{display:none}.tarjeta{padding:18px 16px}.puntos{font-size:48px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="c"></canvas>
+
+  <div id="hud" aria-live="polite">
+    <div class="chip">⭐ <b id="h-puntos">0</b></div>
+    <div class="chip">⏱️ <b id="h-tiempo">30</b>s</div>
+    <div class="chip" id="h-vidas">❤️❤️❤️</div>
+  </div>
+  <div id="barra"><i id="barra-i"></i></div>
+
+  <!-- INICIO -->
+  <div class="pantalla on" id="p-inicio">
+    <div class="tarjeta">
+      <div class="logo">🧺</div>
+      <h1><small>Manojito · Artesanías de Mendoza</small>Atrapa las piezas de Manojito</h1>
+      <p>Mové la canasta y atrapá las piezas de porcelana fría que caen. ¡Cuidado con las tijeras, las cajas rotas y las burbujas grises!</p>
+      <div class="reglas">
+        <span id="r-tiempo">⏱️ 30 segundos</span>
+        <span id="r-vidas">❤️ 3 vidas</span>
+        <span id="r-cupon">🎁 Premio con 25 puntos</span>
+      </div>
+      <button class="btn jugar" id="b-jugar" type="button">Jugar 🌸</button>
+      <div class="mejor" id="i-mejor"></div>
+    </div>
+  </div>
+
+  <!-- FIN -->
+  <div class="pantalla" id="p-fin">
+    <div class="tarjeta">
+      <div class="puntos-t">Tu puntaje</div>
+      <div class="puntos" id="f-puntos">0</div>
+      <p id="f-msg" style="margin-top:10px"></p>
+      <div class="cupon" id="f-cupon" style="display:none">
+        <b id="f-codigo">REGALITO</b>
+        <span id="f-cupon-t"></span>
+      </div>
+      <div class="mejor" id="f-mejor"></div>
+      <button class="btn wa" id="b-canjear" type="button" style="display:none">💬 Canjear por WhatsApp</button>
+      <button class="btn compartir" id="b-compartir" type="button">🌸 Compartir mi resultado</button>
+      <button class="btn otra" id="b-otra" type="button">↻ Jugar de nuevo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   ⚙️  CONFIGURACIÓN: acá cambiás todo lo importante
+   ========================================================== */
+var CONFIG = {
+  duracionSegundos: 30,          // duración de la partida
+  vidas: 3,                      // vidas (solo se pierden con elementos malos)
+
+  puntosParaCupon: 25,           // puntos necesarios para ganar un premio (dificultad)
+
+  /* PREMIOS que se sortean al llegar a los puntos. "peso" = probabilidad relativa (más alto = sale más seguido; 0 = nunca sale). */
+  premios: [
+    { titulo: 'Regalito', detalle: 'una pieza sorpresa de regalo con tu compra', codigo: 'REGALITO', peso: 35 },
+    { titulo: '5% OFF',   detalle: 'de descuento en tu próxima compra',          codigo: 'MANO5',    peso: 20 },
+    { titulo: '10% OFF',  detalle: 'de descuento en tu próxima compra',          codigo: 'MANO10',   peso: 0 },
+    { titulo: '15% OFF',  detalle: 'de descuento en tu próxima compra',          codigo: 'MANO15',   peso: 0 },
+    { titulo: '20% OFF',  detalle: 'en un accesorio a elección',                 codigo: 'MANO20',   peso: 0 }
+  ],
+
+  whatsapp: '5492617142759',     // número con código de país, sin + ni espacios
+  linkCompartir: 'https://susytala.github.io/Web/juegos/atrapa-piezas.html', // link que se comparte
+
+  /* PIEZAS BUENAS (suman 1 punto).
+     Para usar una foto o PNG: poné la ruta en "imagen", por ejemplo  imagen: 'imagenes/flor.png'
+     Si la imagen no carga, se usa el emoji automáticamente. */
+  piezasBuenas: [
+    { nombre: 'flor',      emoji: '🌸', imagen: '' },
+    { nombre: 'lazo',      emoji: '🎀', imagen: '' },
+    { nombre: 'osito',     emoji: '🧸', imagen: '' },
+    { nombre: 'anillo',    emoji: '💍', imagen: '' },
+    { nombre: 'cupcake',   emoji: '🧁', imagen: '' },
+    { nombre: 'mariposa',  emoji: '🦋', imagen: '' }
+  ],
+
+  /* ELEMENTOS MALOS (quitan una vida). También admiten "imagen". */
+  elementosMalos: [
+    { nombre: 'tijera',        emoji: '✂️', imagen: '' },
+    { nombre: 'caja rota',     emoji: '📦', imagen: '' },
+    { nombre: 'burbuja gris',  emoji: '🫧', imagen: '', gris: true }
+  ]
+};
+
+/* ==========================================================
+   Juego (no hace falta tocar nada de acá para abajo)
+   ========================================================== */
+(function(){
+  'use strict';
+  var $ = function(id){ return document.getElementById(id); };
+  var cv = $('c'), ctx = cv.getContext('2d');
+  var W = 0, H = 0, dpr = 1;
+  var KEY_MEJOR = 'manojito_atrapa_mejor';
+
+  /* --- textos que dependen de la configuración --- */
+  $('r-tiempo').textContent = '⏱️ ' + CONFIG.duracionSegundos + ' segundos';
+  $('r-vidas').textContent = '❤️ ' + CONFIG.vidas + ' vidas';
+  $('r-cupon').textContent = '🎁 Premio con ' + CONFIG.puntosParaCupon + ' puntos';
+  $('h-tiempo').textContent = CONFIG.duracionSegundos;
+
+  /* --- mejor puntaje --- */
+  function leerMejor(){ try{ return parseInt(localStorage.getItem(KEY_MEJOR),10) || 0; }catch(e){ return 0; } }
+  function guardarMejor(n){ try{ localStorage.setItem(KEY_MEJOR, String(n)); }catch(e){} }
+  function mostrarMejorInicio(){
+    var m = leerMejor();
+    $('i-mejor').textContent = m ? '🏆 Tu mejor puntaje: ' + m : '';
+  }
+  mostrarMejorInicio();
+
+  /* --- imágenes opcionales --- */
+  function precargar(lista){
+    lista.forEach(function(p){
+      p._img = null;
+      if(p.imagen){
+        var im = new Image();
+        im.onload = function(){ p._img = im; };
+        im.onerror = function(){ p._img = null; };
+        im.src = p.imagen;
+      }
+    });
+  }
+  precargar(CONFIG.piezasBuenas); precargar(CONFIG.elementosMalos);
+
+  /* --- tamaño del lienzo --- */
+  function resize(){
+    var r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    W = Math.max(200, r.width); H = Math.max(300, r.height);
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    medidas();
+  }
+  var sz = 50, cesta = { w:100, h:60, x:0, y:0, objetivo:0, rebote:0 };
+  function medidas(){
+    sz = Math.max(40, Math.min(62, W*0.13));
+    cesta.w = Math.max(84, Math.min(130, W*0.28));
+    cesta.h = cesta.w*0.62;
+    cesta.y = H - cesta.h - Math.max(26, H*0.04);
+    if(!cesta.x) cesta.x = cesta.objetivo = W/2;
+    cesta.x = Math.min(Math.max(cesta.x, cesta.w/2), W - cesta.w/2);
+    cesta.objetivo = Math.min(Math.max(cesta.objetivo, cesta.w/2), W - cesta.w/2);
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', function(){ setTimeout(resize,200); });
+
+  /* --- estado --- */
+  var estado = { jugando:false, t:0, puntos:0, vidas:0, items:[], chispas:[], textos:[], sig:0, last:0, raf:0, flash:0 };
+  var teclas = { izq:false, der:false };
+
+  /* --- entrada: dedo / mouse / teclado --- */
+  function moverA(clientX){
+    var r = cv.getBoundingClientRect();
+    cesta.objetivo = Math.min(Math.max(clientX - r.left, cesta.w/2), W - cesta.w/2);
+  }
+  cv.addEventListener('pointerdown', function(e){ moverA(e.clientX); try{ cv.setPointerCapture(e.pointerId); }catch(_){} e.preventDefault(); });
+  cv.addEventListener('pointermove', function(e){ moverA(e.clientX); e.preventDefault(); });
+  cv.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive:false });
+  document.addEventListener('touchmove', function(e){ e.preventDefault(); }, { passive:false });
+  document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+  window.addEventListener('keydown', function(e){
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){ teclas.izq = true; e.preventDefault(); }
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){ teclas.der = true; e.preventDefault(); }
+    if((e.key==='Enter'||e.key===' ') && !estado.jugando){
+      var inicio = $('p-inicio').classList.contains('on');
+      if(inicio){ empezar(); e.preventDefault(); }
+    }
+  });
+  window.addEventListener('keyup', function(e){
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') teclas.izq = false;
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') teclas.der = false;
+  });
+
+  /* --- partida --- */
+  function vidasTxt(){ var s=''; for(var i=0;i<CONFIG.vidas;i++) s += i < estado.vidas ? '❤️' : '🤍'; return s; }
+  function actualizarHud(){
+    $('h-puntos').textContent = estado.puntos;
+    $('h-vidas').textContent = vidasTxt();
+    var rest = Math.max(0, Math.ceil(CONFIG.duracionSegundos - estado.t));
+    $('h-tiempo').textContent = rest;
+    $('barra-i').style.transform = 'scaleX(' + Math.max(0, 1 - estado.t/CONFIG.duracionSegundos) + ')';
+  }
+
+  function empezar(){
+    resize();
+    estado.jugando = true; estado.t = 0; estado.puntos = 0; estado.vidas = CONFIG.vidas;
+    estado.items = []; estado.chispas = []; estado.textos = []; estado.sig = 0.4; estado.flash = 0;
+    cesta.x = cesta.objetivo = W/2;
+    $('p-inicio').classList.remove('on'); $('p-fin').classList.remove('on');
+    $('hud').style.display = 'flex'; $('barra').style.display = 'block';
+    actualizarHud();
+    estado.last = performance.now();
+    cancelAnimationFrame(estado.raf);
+    estado.raf = requestAnimationFrame(bucle);
+  }
+
+  /* dificultad: de 0 a 1 a lo largo de la partida */
+  function nivel(){ return Math.min(1, estado.t / CONFIG.duracionSegundos); }
+
+  function nuevaPieza(){
+    var lv = nivel();
+    var mala = Math.random() < (0.22 + 0.14*lv);          // 22% al inicio, 36% al final (dificultad media)
+    var lista = mala ? CONFIG.elementosMalos : CONFIG.piezasBuenas;
+    var def = lista[Math.floor(Math.random()*lista.length)];
+    var vel = (H*0.38) + (H*0.34)*lv + Math.random()*H*0.09; // px/seg, aumenta gradualmente (dificultad media)
+    estado.items.push({
+      def: def, mala: mala,
+      x: sz*0.6 + Math.random()*(W - sz*1.2),
+      y: -sz, vy: vel,
+      rot: (Math.random()-.5)*0.6, vr: (Math.random()-.5)*1.4,
+      fase: Math.random()*6.28
+    });
+  }
+
+  function chispasEn(x, y, color, n){
+    for(var i=0;i<n;i++){
+      var a = Math.random()*6.28, v = 60 + Math.random()*140;
+      estado.chispas.push({ x:x, y:y, vx:Math.cos(a)*v, vy:Math.sin(a)*v - 60, vida:0.6+Math.random()*0.3, max:0.9,
+        r:2+Math.random()*3.5, color:color, estrella: Math.random()<0.4 });
+    }
+  }
+  function textoFlotante(x, y, txt, color){ estado.textos.push({ x:x, y:y, txt:txt, color:color, vida:0.9, max:0.9 }); }
+  function vibrar(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+  function actualizar(dt){
+    estado.t += dt;
+    if(estado.t >= CONFIG.duracionSegundos){ estado.t = CONFIG.duracionSegundos; actualizarHud(); return terminar(); }
+
+    /* movimiento de la canasta */
+    var vt = W*1.3;
+    if(teclas.izq) cesta.objetivo -= vt*dt;
+    if(teclas.der) cesta.objetivo += vt*dt;
+    cesta.objetivo = Math.min(Math.max(cesta.objetivo, cesta.w/2), W - cesta.w/2);
+    cesta.x += (cesta.objetivo - cesta.x) * Math.min(1, dt*22);
+    cesta.rebote = Math.max(0, cesta.rebote - dt*4);
+
+    /* aparición: cada vez más seguido (0.82s → 0.32s) */
+    estado.sig -= dt;
+    if(estado.sig <= 0){
+      nuevaPieza();
+      var lv = nivel();
+      estado.sig = (0.82 - 0.50*lv) * (0.8 + Math.random()*0.4);
+    }
+
+    var topeCesta = cesta.y + cesta.h*0.12;
+    for(var i = estado.items.length-1; i>=0; i--){
+      var it = estado.items[i];
+      it.y += it.vy*dt; it.rot += it.vr*dt; it.fase += dt*3;
+      it.xd = it.x + Math.sin(it.fase)*3;
+      var radio = sz*0.42;
+      /* ¿entra en la canasta? */
+      var enBoca = Math.abs(it.xd - cesta.x) < cesta.w*0.5 - radio*0.2;
+      if(enBoca && it.y + radio >= topeCesta && it.y - radio <= cesta.y + cesta.h*0.55){
+        estado.items.splice(i,1);
+        if(it.mala){
+          estado.vidas--; estado.flash = 0.35;
+          chispasEn(it.xd, topeCesta, '#9a8f95', 10);
+          textoFlotante(it.xd, topeCesta - 10, '−1 ❤️', '#b24a63');
+          vibrar(90);
+          actualizarHud();
+          if(estado.vidas <= 0) return terminar();
+        } else {
+          estado.puntos++; cesta.rebote = 1;
+          chispasEn(it.xd, topeCesta, '#e8c477', 8); chispasEn(it.xd, topeCesta, '#f4a9bd', 6);
+          textoFlotante(it.xd, topeCesta - 10, '+1', '#c4577a');
+          actualizarHud();
+        }
+        continue;
+      }
+      /* cayó al piso: sin penalidad, para que no sea frustrante */
+      if(it.y - radio > H) estado.items.splice(i,1);
+    }
+
+    for(var j = estado.chispas.length-1; j>=0; j--){
+      var c = estado.chispas[j]; c.vida -= dt;
+      if(c.vida <= 0){ estado.chispas.splice(j,1); continue; }
+      c.vy += 380*dt; c.x += c.vx*dt; c.y += c.vy*dt;
+    }
+    for(var k = estado.textos.length-1; k>=0; k--){
+      var t = estado.textos[k]; t.vida -= dt; t.y -= 50*dt;
+      if(t.vida <= 0) estado.textos.splice(k,1);
+    }
+    if(estado.flash > 0) estado.flash -= dt;
+    actualizarHud();
+  }
+
+  /* --- dibujo --- */
+  function fondo(){
+    var g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#fff6ea'); g.addColorStop(1,'#fde0e8');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    /* puntitos dorados y moños suaves de fondo */
+    ctx.save(); ctx.globalAlpha = .35; ctx.fillStyle = '#e8c477';
+    for(var y=22; y<H; y+=46){
+      for(var x=((y/46)%2?14:37); x<W; x+=46){ ctx.beginPath(); ctx.arc(x,y,1.7,0,6.28); ctx.fill(); }
+    }
+    ctx.restore();
+    /* suelo de tela */
+    var sy = cesta.y + cesta.h - 2;
+    var s = ctx.createLinearGradient(0,sy,0,H);
+    s.addColorStop(0,'rgba(244,182,197,.0)'); s.addColorStop(1,'rgba(244,182,197,.45)');
+    ctx.fillStyle = s; ctx.fillRect(0,sy,W,H-sy);
+  }
+
+  function dibujarCesta(){
+    var cx = cesta.x, w = cesta.w, h = cesta.h, y = cesta.y;
+    var esc = 1 + Math.sin(cesta.rebote*Math.PI)*0.09;
+    ctx.save();
+    ctx.translate(cx, y + h); ctx.scale(esc, 1/esc*(1+(esc-1)*.5)); ctx.translate(-cx, -(y+h));
+    /* sombra */
+    ctx.fillStyle = 'rgba(168,87,111,.18)';
+    ctx.beginPath(); ctx.ellipse(cx, y+h+3, w*0.5, 6, 0, 0, 6.28); ctx.fill();
+    /* cuerpo tejido */
+    var top = y + h*0.12, bw = w*0.5, bb = w*0.40;
+    ctx.beginPath();
+    ctx.moveTo(cx-bw, top); ctx.lineTo(cx+bw, top);
+    ctx.lineTo(cx+bb, y+h); ctx.quadraticCurveTo(cx, y+h+6, cx-bb, y+h); ctx.closePath();
+    var gc = ctx.createLinearGradient(0,top,0,y+h); gc.addColorStop(0,'#f6dcb4'); gc.addColorStop(1,'#e2b985');
+    ctx.fillStyle = gc; ctx.fill();
+    ctx.strokeStyle = '#c99a62'; ctx.lineWidth = 1.5; ctx.stroke();
+    /* tejido */
+    ctx.save(); ctx.clip();
+    ctx.strokeStyle = 'rgba(160,110,60,.35)'; ctx.lineWidth = 1.3;
+    for(var i=1;i<4;i++){ var yy = top + (y+h-top)*i/4; ctx.beginPath(); ctx.moveTo(cx-bw,yy); ctx.lineTo(cx+bw,yy); ctx.stroke(); }
+    for(var k=-5;k<=5;k++){ ctx.beginPath(); ctx.moveTo(cx+k*w*0.1, top); ctx.lineTo(cx+k*w*0.08, y+h); ctx.stroke(); }
+    ctx.restore();
+    /* borde dorado */
+    ctx.fillStyle = '#ecd08a'; ctx.strokeStyle = '#b88a3e'; ctx.lineWidth = 1.5;
+    rr(cx-bw-4, top-6, bw*2+8, 12, 6); ctx.fill(); ctx.stroke();
+    /* moñito */
+    ctx.fillStyle = '#e07a9a';
+    ctx.beginPath(); ctx.moveTo(cx,top+14); ctx.quadraticCurveTo(cx-17,top+2,cx-15,top+24); ctx.quadraticCurveTo(cx-6,top+16,cx,top+14); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx,top+14); ctx.quadraticCurveTo(cx+17,top+2,cx+15,top+24); ctx.quadraticCurveTo(cx+6,top+16,cx,top+14); ctx.fill();
+    ctx.fillStyle = '#c4577a'; ctx.beginPath(); ctx.arc(cx, top+15, 3.6, 0, 6.28); ctx.fill();
+    ctx.restore();
+  }
+  function rr(x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  function dibujarItem(it){
+    var x = it.xd || it.x, y = it.y, s = sz;
+    ctx.save(); ctx.translate(x,y);
+    /* halo: rosado para lo bueno, gris oscuro para lo malo */
+    var rad = s*0.78;
+    var g = ctx.createRadialGradient(0,0,s*0.1,0,0,rad);
+    if(it.mala){ g.addColorStop(0,'rgba(120,110,118,.28)'); g.addColorStop(1,'rgba(120,110,118,0)'); }
+    else { g.addColorStop(0,'rgba(255,255,255,.95)'); g.addColorStop(.6,'rgba(255,214,226,.6)'); g.addColorStop(1,'rgba(255,214,226,0)'); }
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0,0,rad,0,6.28); ctx.fill();
+    if(it.mala){ ctx.strokeStyle = 'rgba(110,100,108,.55)'; ctx.lineWidth = 2; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.arc(0,0,s*0.62,0,6.28); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.rotate(it.rot*0.5);
+    var d = it.def;
+    if(d._img){ ctx.drawImage(d._img, -s/2, -s/2, s, s); }
+    else {
+      ctx.font = Math.round(s*0.8) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      if(d.gris){ ctx.globalAlpha = .75; ctx.filter = 'grayscale(1) brightness(.85)'; }
+      ctx.fillText(d.emoji, 0, s*0.04);
+    }
+    ctx.restore();
+  }
+
+  function dibujarEstrella(x,y,r,c){
+    ctx.fillStyle = c; ctx.beginPath();
+    for(var i=0;i<8;i++){ var a = i*Math.PI/4, rad = i%2? r*0.45 : r*1.4; ctx.lineTo(x+Math.cos(a)*rad, y+Math.sin(a)*rad); }
+    ctx.closePath(); ctx.fill();
+  }
+
+  function dibujar(){
+    fondo();
+    estado.items.forEach(dibujarItem);
+    dibujarCesta();
+    estado.chispas.forEach(function(c){
+      ctx.globalAlpha = Math.max(0, c.vida/c.max);
+      if(c.estrella) dibujarEstrella(c.x,c.y,c.r,c.color);
+      else { ctx.fillStyle = c.color; ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,6.28); ctx.fill(); }
+    });
+    ctx.globalAlpha = 1;
+    estado.textos.forEach(function(t){
+      ctx.globalAlpha = Math.max(0, t.vida/t.max);
+      ctx.font = '800 22px Nunito, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.strokeText(t.txt, t.x, t.y);
+      ctx.fillStyle = t.color; ctx.fillText(t.txt, t.x, t.y);
+    });
+    ctx.globalAlpha = 1;
+    if(estado.flash > 0){ ctx.fillStyle = 'rgba(190,70,100,' + (estado.flash/0.35*0.25) + ')'; ctx.fillRect(0,0,W,H); }
+  }
+
+  function bucle(now){
+    if(!estado.jugando) return;
+    var dt = Math.min(0.05, (now - estado.last)/1000); estado.last = now;
+    actualizar(dt);
+    if(estado.jugando){ dibujar(); estado.raf = requestAnimationFrame(bucle); }
+  }
+
+  /* --- final --- */
+  function sortear(){
+    function pesoDe(p){ return (typeof p.peso === 'number' && p.peso >= 0) ? p.peso : 1; }   /* peso 0 = ese premio nunca sale */
+    var total = 0; CONFIG.premios.forEach(function(p){ total += pesoDe(p); });
+    if(total <= 0) return CONFIG.premios[0];
+    var r = Math.random() * total;
+    for(var i=0;i<CONFIG.premios.length;i++){ var w = pesoDe(CONFIG.premios[i]); if(w > 0 && r < w) return CONFIG.premios[i]; r -= w; }
+    for(var j=CONFIG.premios.length-1;j>=0;j--) if(pesoDe(CONFIG.premios[j]) > 0) return CONFIG.premios[j];
+    return CONFIG.premios[0];
+  }
+  function terminar(){
+    if(!estado.jugando) return;
+    estado.jugando = false; cancelAnimationFrame(estado.raf);
+    dibujar();
+    $('hud').style.display = 'none'; $('barra').style.display = 'none';
+    var p = estado.puntos, mejor = leerMejor(), nuevoRecord = p > mejor;
+    if(nuevoRecord){ mejor = p; guardarMejor(p); }
+    $('f-puntos').textContent = p;
+    $('f-mejor').textContent = (nuevoRecord && p>0 ? '🏆 ¡Nuevo récord! ' : '🏆 Mejor puntaje: ') + mejor;
+    var gano = p >= CONFIG.puntosParaCupon;
+    var msg;
+    if(gano){
+      estado.premio = sortear();
+      msg = '¡Ganaste: ' + estado.premio.titulo + ' ' + estado.premio.detalle + '! 🎉';
+      $('f-codigo').textContent = estado.premio.codigo;
+      $('f-cupon-t').textContent = estado.premio.titulo + ' · canjealo por WhatsApp';
+    } else {
+      var faltan = CONFIG.puntosParaCupon - p;
+      if(p === 0) msg = '¡No te desanimes! Con práctica sale. Probá de nuevo y ganá tu cupón 🌸';
+      else if(faltan <= 3) msg = '¡Estuviste muy cerca! Te faltaron ' + faltan + ' punto' + (faltan>1?'s':'') + ' para tu cupón. ¡Dale otra vez! 💪';
+      else msg = '¡Buen intento! Con ' + CONFIG.puntosParaCupon + ' puntos ganás un premio. ¡Probá de nuevo! 🌸';
+    }
+    $('f-msg').textContent = msg;
+    $('f-cupon').style.display = gano ? 'block' : 'none';
+    $('b-canjear').style.display = gano ? 'block' : 'none';
+    $('p-fin').classList.add('on');
+  }
+
+  function abrirWhatsApp(texto){
+    var url = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(texto);
+    var w = window.open(url, '_blank');
+    if(!w) location.href = url;
+  }
+
+  $('b-jugar').addEventListener('click', empezar);
+  $('b-otra').addEventListener('click', function(){ mostrarMejorInicio(); empezar(); });
+  $('b-canjear').addEventListener('click', function(){
+    abrirWhatsApp('¡Hola! Jugué Atrapa las piezas de Manojito e hice ' + estado.puntos + ' puntos. Quiero canjear mi premio: ' + (estado.premio ? estado.premio.titulo + ' (cupón ' + estado.premio.codigo + ')' : '') + ' 🌸');
+  });
+  $('b-compartir').addEventListener('click', function(){
+    abrirWhatsApp('¡Hice ' + estado.puntos + ' puntos en Atrapa las piezas de Manojito! 🌸 ¿Podés superarme? Jugá acá: ' + CONFIG.linkCompartir);
+  });
+
+  /* pausa si se va de la pestaña */
+  document.addEventListener('visibilitychange', function(){ if(estado.jugando) estado.last = performance.now(); });
+
+  /* arranque */
+  resize(); dibujar();
+  window.__atrapa = { estado: estado, cesta: cesta, empezar: empezar }; // solo para pruebas
+})();
+</script>
+</body>
+</html>
